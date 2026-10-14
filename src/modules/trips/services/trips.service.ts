@@ -13,6 +13,7 @@ import {
 } from 'typeorm';
 import { Paginated } from '../../../common/dto/paginated-response.dto';
 import { AuthUser } from '../../auth/interfaces/auth-user.interface';
+import { Favorite, FavoriteType } from '../../favorites/entities/favorite.entity';
 import { MediaType } from '../../media/entities/media.entity';
 import { MediaService } from '../../media/media.service';
 import { PlacesService } from '../../places/places.service';
@@ -78,6 +79,7 @@ export class TripsService {
     private readonly gallery: TripGalleryService,
     private readonly places: PlacesService,
     @InjectRepository(TripExpense) private readonly tripExpenses: Repository<TripExpense>,
+    @InjectRepository(Favorite) private readonly favorites: Repository<Favorite>,
     private readonly mediaService: MediaService,
     private readonly usersService: UsersService,
     private readonly access: TripAccessService,
@@ -200,11 +202,19 @@ export class TripsService {
     return this.findOne(tripId, myRole);
   }
 
-  /** Deletes the trip with its members, invitations, activities, ideas and trip images. */
+  /** Deletes the trip with its members, invitations, activities, ideas, images and favorites. */
   async remove(tripId: number): Promise<void> {
     await this.getTrip(tripId);
+    const activities = await this.activities.find({ where: { tripId }, select: { id: true } });
     await this.trips.delete(tripId);
     await this.mediaService.removeByEntity(MediaType.TRIP, tripId);
+    await this.favorites.delete({ type: FavoriteType.TRIP, targetId: String(tripId) });
+    if (activities.length) {
+      await this.favorites.delete({
+        type: FavoriteType.ACTIVITY,
+        targetId: In(activities.map((a) => String(a.id))),
+      });
+    }
   }
 
   // ── Invite link (joins as editor) ─────────────────────────
@@ -434,8 +444,12 @@ export class TripsService {
     await this.attachStats(trips);
     await this.attachShareDetails(trips, withActivities);
     const ids = trips.map((t) => t.id);
-    const [mine, activities] = await Promise.all([
+    const [mine, saved, activities] = await Promise.all([
       this.members.find({ where: { userId: viewer.id, tripId: In(ids) } }),
+      this.favorites.find({
+        where: { userId: viewer.id, type: FavoriteType.TRIP, targetId: In(ids.map(String)) },
+        select: { targetId: true },
+      }),
       withActivities
         ? this.activities.find({
             where: { tripId: In(ids) },
@@ -467,6 +481,7 @@ export class TripsService {
       memberCount: t.memberCount ?? 0,
       owner: t.owner ? toUserSummary(t.owner) : null,
       myRole: mine.find((m) => m.tripId === t.id)?.role ?? null,
+      isFavorite: saved.some((f) => f.targetId === String(t.id)),
       createdAt: t.createdAt,
       actualSpentPerPerson: t.actualSpentPerPerson,
       spendDifferencePerPerson: t.spendDifferencePerPerson,

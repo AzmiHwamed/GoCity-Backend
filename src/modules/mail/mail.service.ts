@@ -92,4 +92,19 @@ export class MailService {
       `<p>If you did not request a password reset, you can ignore this email.</p>`;
     return this.send({ to, subject: 'Your password reset code', text, html });
   }
+
+  sendEmailVerificationCode(to: string, name: string, code: string, ttlMinutes: number) {
+    const text =
+      `Hi ${name},\n\n` +
+      `Your GoCity verification code is: ${code}\n` +
+      `It expires in ${ttlMinutes} minutes.\n\n` +
+      `If you did not create this account, you can ignore this email.`;
+    const html =
+      `<p>Hi ${escapeHtml(name)},</p>` +
+      `<p>Your GoCity verification code is:</p>` +
+      `<p style="font-size:24px;font-weight:bold;letter-spacing:4px">${code}</p>` +
+      `<p>It expires in ${ttlMinutes} minutes.</p>` +
+      `<p>If you did not create this account, you can ignore this email.</p>`;
+    return this.send({ to, subject: 'Verify your GoCity email', text, html });
+  }
 }

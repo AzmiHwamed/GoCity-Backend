@@ -39,12 +39,26 @@ export class AuthController {
 
   @Public()
   @Post('register')
-  @ApiOperation({ summary: 'Sign up as a user or an organization' })
-  @ApiCreatedResponse({ type: AuthResponseDto })
+  @ApiOperation({ summary: 'Sign up as a user' })
+  @ApiCreatedResponse({ type: MessageResponseDto })
   @ApiConflictResponse({ description: 'Email already registered' })
-  @ResponseTitle('Account created')
-  register(@Body() dto: RegisterDto, @Client() client: ClientInfo): Promise<AuthResponseDto> {
-    return this.authService.register(dto, client);
+  @ResponseTitle('Verification code sent')
+  register(@Body() dto: RegisterDto): Promise<MessageResponseDto> {
+    return this.authService.register(dto);
+  }
+
+  @Public()
+  @Post('verify-registration')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Verify an email address and activate the new account' })
+  @ApiOkResponse({ type: AuthResponseDto })
+  @ApiBadRequestResponse({ description: 'Invalid, expired or locked verification code' })
+  @ResponseTitle('Email verified')
+  verifyRegistration(
+    @Body() dto: VerifyOtpDto,
+    @Client() client: ClientInfo,
+  ): Promise<AuthResponseDto> {
+    return this.authService.verifyRegistration(dto, client);
   }
 
   @Public()

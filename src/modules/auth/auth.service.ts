@@ -40,8 +40,10 @@ interface ResetEntry {
 
 export const FORGOT_PASSWORD_MESSAGE =
   'If an account exists for this email, a verification code has been sent.';
+export const REGISTRATION_MESSAGE = 'Check your email for the verification code to activate your account.';
 
 const otpKey = (email: string) => `otp:${email}`;
+const registrationOtpKey = (email: string) => `registration-otp:${email}`;
 // Only a hash of the reset token is used as the key, so a cache dump doesn't leak usable tokens.
 const resetKey = (token: string) => `reset:${createHash('sha256').update(token).digest('hex')}`;
 
@@ -62,9 +64,20 @@ export class AuthService {
 
   // ── Register / login ──────────────────────────────────────
 
-  async register(dto: RegisterDto, client?: ClientInfo): Promise<AuthResponseDto> {
-    const user = await this.usersService.create(dto);
-    return this.issueToken(user, client);
+  async register(dto: RegisterDto): Promise<MessageResponseDto> {
+    const user = await this.usersService.create(dto, false);
+    await this.sendRegistrationCode(user);
+    return { message: REGISTRATION_MESSAGE };
+  }
+
+  async verifyRegistration(dto: VerifyOtpDto, client?: ClientInfo): Promise<AuthResponseDto> {
+    const key = registrationOtpKey(dto.email);
+    const entry = await this.cache.get<OtpEntry>(key);
+    await this.assertOtp(entry, dto.otp, key);
+    const user = await this.usersService.findByEmail(dto.email);
+    if (!user) throw new BadRequestException('Invalid or expired code');
+    await this.cache.del(key);
+    return this.issueToken(await this.usersService.activate(user.id), client);
   }
 
   async login({ email, password }: LoginDto, client?: ClientInfo): Promise<AuthResponseDto> {
@@ -137,28 +150,12 @@ export class AuthService {
   async verifyOtp({ email, otp }: VerifyOtpDto): Promise<VerifyOtpResponseDto> {
     const key = otpKey(email);
     const entry = await this.cache.get<OtpEntry>(key);
-    if (!entry || entry.expiresAt <= Date.now()) {
-      throw new BadRequestException('Invalid or expired code');
-    }
-    if (entry.attempts >= this.auth.otpMaxAttempts) {
-      await this.cache.del(key);
-      throw new BadRequestException('Too many attempts, please request a new code');
-    }
-
-    if (!(await bcrypt.compare(otp, entry.hash))) {
-      entry.attempts += 1;
-      if (entry.attempts >= this.auth.otpMaxAttempts) {
-        await this.cache.del(key);
-        throw new BadRequestException('Too many attempts, please request a new code');
-      }
-      await this.cache.set(key, entry, entry.expiresAt - Date.now());
-      throw new BadRequestException('Invalid or expired code');
-    }
+    await this.assertOtp(entry, otp, key);
 
     await this.cache.del(key);
     const resetToken = randomBytes(32).toString('hex');
     const ttlMs = this.auth.resetTokenTtlSeconds * 1000;
-    const resetEntry: ResetEntry = { userId: entry.userId, expiresAt: Date.now() + ttlMs };
+    const resetEntry: ResetEntry = { userId: entry!.userId, expiresAt: Date.now() + ttlMs };
     await this.cache.set(resetKey(resetToken), resetEntry, ttlMs);
 
     return { resetToken, expiresIn: this.auth.resetTokenTtlSeconds };
@@ -184,5 +181,36 @@ export class AuthService {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { refreshTokenId, ...tokens } = await this.tokens.issue(user, client);
     return tokens;
+  }
+
+  private async sendRegistrationCode(user: User): Promise<void> {
+    const code = randomInt(0, 1_000_000).toString().padStart(6, '0');
+    const ttlMs = this.auth.otpTtlSeconds * 1000;
+    await this.cache.set(
+      registrationOtpKey(user.email),
+      { userId: user.id, hash: await bcrypt.hash(code, 10), attempts: 0, expiresAt: Date.now() + ttlMs },
+      ttlMs,
+    );
+    try {
+      await this.mailService.sendEmailVerificationCode(user.email, user.firstName, code, Math.round(this.auth.otpTtlSeconds / 60));
+    } catch (err) {
+      this.logger.error(`Failed to send verification code to ${user.email}`, (err as Error).stack);
+    }
+  }
+
+  private async assertOtp(entry: OtpEntry | undefined, otp: string, key: string): Promise<void> {
+    if (!entry || entry.expiresAt <= Date.now()) throw new BadRequestException('Invalid or expired code');
+    if (entry.attempts >= this.auth.otpMaxAttempts) {
+      await this.cache.del(key);
+      throw new BadRequestException('Too many attempts, please request a new code');
+    }
+    if (await bcrypt.compare(otp, entry.hash)) return;
+    entry.attempts += 1;
+    if (entry.attempts >= this.auth.otpMaxAttempts) {
+      await this.cache.del(key);
+      throw new BadRequestException('Too many attempts, please request a new code');
+    }
+    await this.cache.set(key, entry, entry.expiresAt - Date.now());
+    throw new BadRequestException('Invalid or expired code');
   }
 }

@@ -35,17 +35,23 @@ export class UsersService {
     private readonly mediaService: MediaService,
   ) {}
 
-  async create(dto: CreateUserDto): Promise<User> {
+  async create(dto: CreateUserDto, isActive = true): Promise<User> {
     await this.ensureEmailIsFree(dto.email);
     const role = dto.role ?? UserRole.USER;
     const user = this.usersRepository.create({
       ...dto,
       role,
       organizationName: role === UserRole.ORGANIZATION ? dto.organizationName : null,
+      isActive,
       password: await bcrypt.hash(dto.password, SALT_ROUNDS),
     });
     const saved = await this.usersRepository.save(user);
     return this.findOne(saved.id);
+  }
+
+  async activate(id: number): Promise<User> {
+    await this.usersRepository.update(id, { isActive: true });
+    return this.findOne(id);
   }
 
   async findAll(query: QueryUserDto): Promise<Paginated<User>> {

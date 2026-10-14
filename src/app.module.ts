@@ -21,6 +21,7 @@ import { TripsModule } from './modules/trips/trips.module';
 import { UsersModule } from './modules/users/users.module';
 import { PlacesModule } from './modules/places/places.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
+import { FavoritesModule } from './modules/favorites/favorites.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
     TripsModule,
     PlacesModule,
     NotificationsModule,
+    FavoritesModule,
   ],
   controllers: [AppController],
   providers: [

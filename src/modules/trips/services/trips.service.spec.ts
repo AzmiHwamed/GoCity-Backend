@@ -19,6 +19,7 @@ import { TripsService } from './trips.service';
 import { PlacesService } from '../../places/places.service';
 import { TripExpense } from '../entities/trip-expense.entity';
 import { ServiceUnavailableException } from '@nestjs/common';
+import { Favorite, FavoriteType } from '../../favorites/entities/favorite.entity';
 
 const me = { id: 1, email: 'me@x.com', role: UserRole.USER };
 const other = { id: 9, email: 'o@x.com', role: UserRole.USER };
@@ -80,6 +81,10 @@ describe('TripsService', () => {
     add: jest.fn(),
   };
   const usersService = { findById: jest.fn() };
+  const favoritesRepo = {
+    find: jest.fn(async (): Promise<Partial<Favorite>[]> => []),
+    delete: jest.fn(),
+  };
 
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -104,6 +109,7 @@ describe('TripsService', () => {
         { provide: PlacesService, useValue: places },
         { provide: getRepositoryToken(TripExpense), useValue: { createQueryBuilder: () => qb } },
         { provide: UsersService, useValue: usersService },
+        { provide: getRepositoryToken(Favorite), useValue: favoritesRepo },
         { provide: TripAccessService, useValue: access },
         { provide: ConfigService, useValue: { get: () => 'https://app.example.com/' } },
       ],
@@ -224,6 +230,38 @@ describe('TripsService', () => {
       expect(json).not.toContain('"abc"');
       expect(view.myRole).toBeNull();
       expect(view.activities).toEqual([]);
+      expect(view.isFavorite).toBe(false);
+    });
+
+    it('marks trips the viewer has favorited', async () => {
+      tripsRepo.findOne.mockResolvedValueOnce(
+        trip({ shareCode: 'abc', visibility: TripVisibility.LINK }),
+      );
+      favoritesRepo.find.mockResolvedValueOnce([{ targetId: '10' }]);
+      const view = await service.viewShared('abc', other);
+      expect(view.isFavorite).toBe(true);
+      expect(favoritesRepo.find).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ userId: other.id, type: FavoriteType.TRIP }),
+        }),
+      );
+    });
+  });
+
+  describe('remove', () => {
+    it('also deletes favorites of the trip and its activities', async () => {
+      Object.assign(tripsRepo, { delete: jest.fn() });
+      activitiesRepo.find.mockResolvedValueOnce([{ id: 5 }, { id: 6 }] as never);
+      await service.remove(10);
+      expect(favoritesRepo.delete).toHaveBeenCalledWith({
+        type: FavoriteType.TRIP,
+        targetId: '10',
+      });
+      const [activityCall] = favoritesRepo.delete.mock.calls[1] as [
+        { type: FavoriteType; targetId: FindOperator<string[]> },
+      ];
+      expect(activityCall.type).toBe(FavoriteType.ACTIVITY);
+      expect(activityCall.targetId.value).toEqual(['5', '6']);
     });
   });
 

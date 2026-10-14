@@ -34,6 +34,7 @@ import { TripExpensesService } from './services/trip-expenses.service';
 import { TripGalleryService } from './services/trip-gallery.service';
 import { TripsService } from './services/trips.service';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { Favorite } from '../favorites/entities/favorite.entity';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
       TripTip,
       TripExpense,
       Media,
+      Favorite,
     ]),
     UsersModule,
     MailModule,

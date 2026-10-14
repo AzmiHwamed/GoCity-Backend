@@ -90,7 +90,11 @@ export class TripInvitationsService {
         type: 'trip_invitation',
         title: 'You have a trip invitation',
         body: `${sender ? `${sender.firstName} ${sender.lastName}` : 'A traveller'} invited you to ${trip.name}.`,
-        data: { invitationId: String(invitation.id), tripId: String(trip.id), url: '/notifications' },
+        data: {
+          invitationId: String(invitation.id),
+          tripId: String(trip.id),
+          url: '/notifications',
+        },
       });
     }
     try {

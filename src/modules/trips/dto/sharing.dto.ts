@@ -172,6 +172,7 @@ export class PublicTripDto {
     description: 'Your role if you are a member',
   })
   myRole: TripMemberRole | null;
+  @ApiProperty({ description: 'In your favorites' }) isFavorite: boolean;
   @ApiProperty() createdAt: Date;
   @ApiPropertyOptional({ nullable: true, description: 'What each person actually spent' })
   actualSpentPerPerson: number | null;

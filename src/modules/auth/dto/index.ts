@@ -2,7 +2,6 @@ import { ApiProperty, ApiPropertyOptional, OmitType } from '@nestjs/swagger';
 import {
   IsEmail,
   IsHexadecimal,
-  IsIn,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -12,16 +11,10 @@ import {
 } from 'class-validator';
 import { IsStrongPassword, ToLowerTrim } from '../../../common/validators';
 import { CreateUserDto } from '../../users/dto/create-user.dto';
-import { User, UserRole } from '../../users/entities/user.entity';
+import { User } from '../../users/entities/user.entity';
 
-export const SELF_REGISTER_ROLES = [UserRole.USER, UserRole.ORGANIZATION] as const;
-
-export class RegisterDto extends OmitType(CreateUserDto, ['role'] as const) {
-  @ApiPropertyOptional({ enum: SELF_REGISTER_ROLES, default: UserRole.USER })
-  @IsOptional()
-  @IsIn(SELF_REGISTER_ROLES)
-  role?: UserRole.USER | UserRole.ORGANIZATION;
-}
+/** Public registration creates standard user accounts only. Admins create organizations. */
+export class RegisterDto extends OmitType(CreateUserDto, ['role', 'organizationName'] as const) {}
 
 export class LoginDto {
   @ApiProperty({ example: 'jane@example.com' })
