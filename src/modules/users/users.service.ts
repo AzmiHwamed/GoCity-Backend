@@ -6,10 +6,14 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcryptjs';
-import { Brackets, IsNull, Repository } from 'typeorm';
+import { Brackets, In, IsNull, Repository } from 'typeorm';
 import { RefreshToken } from '../auth/entities/refresh-token.entity';
 import { Paginated } from '../../common/dto/paginated-response.dto';
 import { MediaService } from '../media/media.service';
+import { Favorite } from '../favorites/entities/favorite.entity';
+import { Trip } from '../trips/entities/trip.entity';
+import { TripVisibility } from '../trips/trip.enums';
+import { Interest } from '../interests/entities/interest.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { QueryUserDto } from './dto/query-user.dto';
 import {
@@ -32,6 +36,12 @@ export class UsersService {
     private readonly usersRepository: Repository<User>,
     @InjectRepository(RefreshToken)
     private readonly refreshTokens: Repository<RefreshToken>,
+    @InjectRepository(Trip)
+    private readonly trips: Repository<Trip>,
+    @InjectRepository(Favorite)
+    private readonly favorites: Repository<Favorite>,
+    @InjectRepository(Interest)
+    private readonly interests: Repository<Interest>,
     private readonly mediaService: MediaService,
   ) {}
 
@@ -139,6 +149,14 @@ export class UsersService {
   async findOne(id: number): Promise<User> {
     const user = await this.findById(id);
     if (!user) throw new NotFoundException(`User #${id} not found`);
+    const [tripCount, savedCount, sharedTripCount] = await Promise.all([
+      this.trips.count({ where: { ownerId: id } }),
+      this.favorites.count({ where: { userId: id } }),
+      this.trips.count({
+        where: { ownerId: id, visibility: In([TripVisibility.LINK, TripVisibility.PUBLIC]) },
+      }),
+    ]);
+    Object.assign(user, { tripCount, savedCount, sharedTripCount });
     return user;
   }
 
@@ -164,7 +182,8 @@ export class UsersService {
     const user = await this.findOne(id);
     if (avatar) this.mediaService.assertValidImage(avatar);
     if (dto.email && dto.email !== user.email) await this.ensureEmailIsFree(dto.email);
-    Object.assign(user, dto);
+    // PATCH treats null as "leave this field unchanged" rather than clearing profile data.
+    Object.assign(user, Object.fromEntries(Object.entries(dto).filter(([, value]) => value != null)));
 
     if (user.role === UserRole.ORGANIZATION && !user.organizationName) {
       throw new BadRequestException('organizationName is required for organizations');
@@ -184,10 +203,18 @@ export class UsersService {
   ): Promise<User> {
     const user = await this.findOne(id);
     if (avatar) this.mediaService.assertValidImage(avatar);
-    const { organizationName, ...rest } = dto;
-    Object.assign(user, rest);
-    if (organizationName !== undefined && user.role === UserRole.ORGANIZATION) {
+    const { organizationName, interests, ...rest } = dto;
+    Object.assign(user, Object.fromEntries(Object.entries(rest).filter(([, value]) => value != null)));
+    if (organizationName != null && user.role === UserRole.ORGANIZATION) {
       user.organizationName = organizationName;
+    }
+    if (interests != null) {
+      const uniqueIds = [...new Set(interests)];
+      const selected = await this.interests.findByIds(uniqueIds);
+      if (selected.length !== uniqueIds.length) {
+        throw new BadRequestException('One or more interests do not exist');
+      }
+      user.interests = selected;
     }
     return this.saveWithAvatar(user, avatar);
   }

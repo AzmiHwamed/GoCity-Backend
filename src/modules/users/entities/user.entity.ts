@@ -1,8 +1,9 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Exclude } from 'class-transformer';
-import { Column, Entity, Index, JoinColumn, ManyToOne, Relation } from 'typeorm';
+import { Column, Entity, Index, JoinColumn, JoinTable, ManyToMany, ManyToOne, Relation } from 'typeorm';
 import { BaseEntity } from '../../../common/entities/base.entity';
 import { Media } from '../../media/entities/media.entity';
+import { Interest } from '../../interests/entities/interest.entity';
 
 export enum UserRole {
   USER = 'user',
@@ -41,6 +42,19 @@ export class User extends BaseEntity {
   @Column({ type: 'varchar', length: 30, nullable: true })
   phone: string | null;
 
+  @ApiPropertyOptional({ nullable: true, example: 'I enjoy finding local food and quiet walks.' })
+  @Column({ name: 'about_me', type: 'text', nullable: true })
+  aboutMe: string | null;
+
+  @ApiPropertyOptional({ type: () => [Interest] })
+  @ManyToMany(() => Interest, { eager: true })
+  @JoinTable({
+    name: 'user_interests',
+    joinColumn: { name: 'user_id', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'interest_id', referencedColumnName: 'id' },
+  })
+  interests?: Relation<Interest>[];
+
   @ApiProperty({ example: true })
   @Column({ name: 'is_active', default: true })
   isActive: boolean;
@@ -58,4 +72,9 @@ export class User extends BaseEntity {
   @ManyToOne(() => Media, { nullable: true, onDelete: 'SET NULL', eager: true })
   @JoinColumn({ name: 'avatar_id' })
   avatar?: Relation<Media> | null;
+
+  /** Profile statistics, populated only for full profile responses. */
+  @ApiPropertyOptional({ example: 4 }) tripCount?: number;
+  @ApiPropertyOptional({ example: 12 }) savedCount?: number;
+  @ApiPropertyOptional({ example: 2 }) sharedTripCount?: number;
 }

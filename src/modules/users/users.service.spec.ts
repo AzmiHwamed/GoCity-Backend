@@ -8,6 +8,9 @@ import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import * as bcrypt from 'bcryptjs';
 import { RefreshToken } from '../auth/entities/refresh-token.entity';
+import { Favorite } from '../favorites/entities/favorite.entity';
+import { Trip } from '../trips/entities/trip.entity';
+import { Interest } from '../interests/entities/interest.entity';
 import { MediaService } from '../media/media.service';
 import { SearchUsersDto, maskEmail } from './dto/search-users.dto';
 import { User, UserRole } from './entities/user.entity';
@@ -30,6 +33,9 @@ describe('UsersService', () => {
   };
   const mediaService = { assertValidImage: jest.fn(), uploadAvatar: jest.fn() };
   const refreshTokens = { update: jest.fn() };
+  const trips = { count: jest.fn(async () => 0) };
+  const favorites = { count: jest.fn(async () => 0) };
+  const interests = { findByIds: jest.fn(async () => []) };
 
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -38,6 +44,9 @@ describe('UsersService', () => {
         UsersService,
         { provide: getRepositoryToken(User), useValue: repo },
         { provide: getRepositoryToken(RefreshToken), useValue: refreshTokens },
+        { provide: getRepositoryToken(Trip), useValue: trips },
+        { provide: getRepositoryToken(Favorite), useValue: favorites },
+        { provide: getRepositoryToken(Interest), useValue: interests },
         { provide: MediaService, useValue: mediaService },
       ],
     }).compile();

@@ -22,6 +22,7 @@ import { UsersModule } from './modules/users/users.module';
 import { PlacesModule } from './modules/places/places.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { FavoritesModule } from './modules/favorites/favorites.module';
+import { InterestsModule } from './modules/interests/interests.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { FavoritesModule } from './modules/favorites/favorites.module';
     PlacesModule,
     NotificationsModule,
     FavoritesModule,
+    InterestsModule,
   ],
   controllers: [AppController],
   providers: [

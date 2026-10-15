@@ -46,6 +46,8 @@ const PROFILE_FIELDS: SchemaProps = {
   lastName: { type: 'string', example: 'Doe' },
   phone: { type: 'string', example: '+447911123456' },
   organizationName: { type: 'string', description: 'Only applied for organizations' },
+  aboutMe: { type: 'string', maxLength: 1000 },
+  interests: { type: 'array', items: { type: 'string' }, maxItems: 12 },
 };
 const ADMIN_FIELDS: SchemaProps = {
   ...PROFILE_FIELDS,
