@@ -13,21 +13,42 @@ async function bootstrap() {
   const config = app.get(ConfigService);
   const logger = new Logger('Bootstrap');
 
-  // Allow a frontend on another origin to display uploaded images.
-  app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
-  app.enableCors({ origin: config.get<string>('app.corsOrigin') });
+  // Allows frontend apps on another origin to display uploaded images.
+  app.use(
+    helmet({
+      crossOriginResourcePolicy: { policy: 'cross-origin' },
+      // Required when accessing Swagger through http://IP:PORT.
+      // Otherwise Swagger assets are upgraded to unavailable HTTPS URLs.
+      contentSecurityPolicy: {
+        directives: {
+          upgradeInsecureRequests: null,
+        },
+      },
+    }),
+  );
+
+  app.enableCors({
+    origin: config.get<string>('app.corsOrigin'),
+  });
+
   app.setGlobalPrefix(config.get<string>('app.apiPrefix', 'api'));
-  app.enableVersioning({ type: VersioningType.URI, defaultVersion: '1' });
+  app.enableVersioning({
+    type: VersioningType.URI,
+    defaultVersion: '1',
+  });
 
   // Uploaded files: public/uploads/<name> is served at /files/<name>.
   mkdirSync(UPLOAD_DIR, { recursive: true });
-  app.useStaticAssets(UPLOAD_DIR, { prefix: `${MEDIA_URL_PREFIX}/`, index: false });
+  app.useStaticAssets(UPLOAD_DIR, {
+    prefix: `${MEDIA_URL_PREFIX}/`,
+    index: false,
+  });
 
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true, // strip properties without decorators
-      forbidNonWhitelisted: true, // reject unknown properties
-      transform: true, // convert payloads to DTO instances
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
       transformOptions: { enableImplicitConversion: true },
     }),
   );
@@ -40,9 +61,14 @@ async function bootstrap() {
 
   const port = config.get<number>('app.port', 3000);
   await app.listen(port);
+
   logger.log(`Server running on http://localhost:${port}`);
+
   if (config.get<boolean>('swagger.enabled')) {
-    logger.log(`Swagger docs at http://localhost:${port}/${config.get('swagger.path')}`);
+    logger.log(
+      `Swagger docs at http://localhost:${port}/${config.get('swagger.path')}`,
+    );
   }
 }
+
 bootstrap();
