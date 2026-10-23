@@ -3,6 +3,7 @@ import { BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
 import * as bcrypt from 'bcryptjs';
+import { LegalService } from '../legal/legal.service';
 import { MailService } from '../mail/mail.service';
 import { User, UserRole } from '../users/entities/user.entity';
 import { UsersService } from '../users/users.service';
@@ -29,8 +30,10 @@ describe('AuthService', () => {
     findByEmailWithPassword: jest.fn(),
     findOne: jest.fn(async () => user),
     setPassword: jest.fn(),
+    create: jest.fn(async () => user),
   };
-  const mailService = { sendPasswordResetCode: jest.fn() };
+  const mailService = { sendPasswordResetCode: jest.fn(), sendEmailVerificationCode: jest.fn() };
+  const legal = { accept: jest.fn() };
   const config = {
     getOrThrow: () => ({
       jwtSecret: 'x'.repeat(32),
@@ -69,11 +72,28 @@ describe('AuthService', () => {
           },
         },
         { provide: MailService, useValue: mailService },
+        { provide: LegalService, useValue: legal },
         { provide: CACHE_MANAGER, useValue: cache },
         { provide: ConfigService, useValue: config },
       ],
     }).compile();
     service = moduleRef.get(AuthService);
+  });
+
+  describe('register', () => {
+    const input = { firstName: 'Jane', lastName: 'Doe', email: user.email, password: 'Right1234' };
+
+    it('records acceptance of the current terms and privacy policy when ticked', async () => {
+      await service.register({ ...input, acceptTerms: true });
+      expect(usersService.create).toHaveBeenCalledWith(input, false); // acceptTerms is not a user field
+      expect(legal.accept).toHaveBeenCalledWith(user.id);
+    });
+
+    it('still registers older clients that do not send acceptTerms', async () => {
+      await service.register(input);
+      expect(usersService.create).toHaveBeenCalled();
+      expect(legal.accept).not.toHaveBeenCalled();
+    });
   });
 
   describe('login', () => {

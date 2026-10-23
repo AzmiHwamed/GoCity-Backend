@@ -15,13 +15,15 @@ export class InterestsService {
   async findByIds(ids: number[]): Promise<Interest[]> {
     const uniqueIds = [...new Set(ids)];
     const interests = await this.interests.findByIds(uniqueIds);
-    if (interests.length !== uniqueIds.length) throw new NotFoundException('One or more interests do not exist');
+    if (interests.length !== uniqueIds.length)
+      throw new NotFoundException('One or more interests do not exist');
     return interests;
   }
 
   async create(dto: CreateInterestDto): Promise<Interest> {
     const name = dto.name.trim();
-    if (await this.interests.exists({ where: { name } })) throw new ConflictException('Interest already exists');
+    if (await this.interests.exists({ where: { name } }))
+      throw new ConflictException('Interest already exists');
     return this.interests.save(this.interests.create({ name }));
   }
 

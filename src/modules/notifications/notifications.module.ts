@@ -8,4 +8,18 @@ import { NotificationsGateway } from './notifications.gateway';
 import { NotificationsService } from './notifications.service';
 import { DeviceToken } from './entities/device-token.entity';
 import { Notification } from './entities/notification.entity';
-@Module({ imports: [TypeOrmModule.forFeature([Notification, DeviceToken]), JwtModule.registerAsync({ inject: [ConfigService], useFactory: (config: ConfigService) => ({ secret: config.getOrThrow<AuthConfig>('auth').jwtSecret }) })], controllers: [NotificationsController], providers: [NotificationsService, NotificationsGateway], exports: [NotificationsService] }) export class NotificationsModule {}
+@Module({
+  imports: [
+    TypeOrmModule.forFeature([Notification, DeviceToken]),
+    JwtModule.registerAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        secret: config.getOrThrow<AuthConfig>('auth').jwtSecret,
+      }),
+    }),
+  ],
+  controllers: [NotificationsController],
+  providers: [NotificationsService, NotificationsGateway],
+  exports: [NotificationsService],
+})
+export class NotificationsModule {}

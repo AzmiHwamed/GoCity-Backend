@@ -17,7 +17,13 @@ import { AuthUser } from '../auth/interfaces/auth-user.interface';
 import { User, UserRole } from '../users/entities/user.entity';
 import { QueryMediaDto, UploadMediaDto } from './dto';
 import { Media, MediaType } from './entities/media.entity';
-import { ALLOWED_IMAGE_TYPES, ALLOWED_TRIP_MEDIA_TYPES, ALLOWED_VIDEO_TYPES, UPLOAD_DIR_TOKEN, detectImageType } from './media.constants';
+import {
+  ALLOWED_IMAGE_TYPES,
+  ALLOWED_TRIP_MEDIA_TYPES,
+  ALLOWED_VIDEO_TYPES,
+  UPLOAD_DIR_TOKEN,
+  detectImageType,
+} from './media.constants';
 
 @Injectable()
 export class MediaService {
@@ -48,15 +54,21 @@ export class MediaService {
 
   /** Accepts verified images and short MP4/WebM clips for trip galleries. */
   assertValidTripMedia(file: Express.Multer.File | undefined): string {
-    const image = file?.buffer ? detectImageType(file.buffer) : null;
+    if (!file?.buffer?.length) throw new BadRequestException('file is required');
+    const image = detectImageType(file.buffer);
     if (image) return image;
     if (!file?.buffer?.length || !(file.mimetype in ALLOWED_VIDEO_TYPES)) {
-      throw new UnsupportedMediaTypeException(`Only ${Object.keys(ALLOWED_TRIP_MEDIA_TYPES).join(', ')} media files are allowed`);
+      throw new UnsupportedMediaTypeException(
+        `Only ${Object.keys(ALLOWED_TRIP_MEDIA_TYPES).join(', ')} media files are allowed`,
+      );
     }
     const header = file.buffer.subarray(0, 16).toString('ascii');
     const isMp4 = file.mimetype === 'video/mp4' && header.includes('ftyp');
-    const isWebm = file.mimetype === 'video/webm' && file.buffer.subarray(0, 4).equals(Buffer.from([0x1a, 0x45, 0xdf, 0xa3]));
-    if (!isMp4 && !isWebm) throw new UnsupportedMediaTypeException('The video file is invalid or unsupported');
+    const isWebm =
+      file.mimetype === 'video/webm' &&
+      file.buffer.subarray(0, 4).equals(Buffer.from([0x1a, 0x45, 0xdf, 0xa3]));
+    if (!isMp4 && !isWebm)
+      throw new UnsupportedMediaTypeException('The video file is invalid or unsupported');
     return file.mimetype;
   }
 

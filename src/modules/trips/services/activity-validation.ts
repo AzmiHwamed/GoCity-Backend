@@ -35,6 +35,22 @@ export function assertCoordinatePair(
   }
 }
 
+/** True when the activity can go on a map: a place or a meeting point with coordinates. */
+export const hasLocation = (
+  d: Pick<Details, 'placeLatitude' | 'placeLongitude' | 'meetingLatitude' | 'meetingLongitude'>,
+) =>
+  (d.placeLatitude != null && d.placeLongitude != null) ||
+  (d.meetingLatitude != null && d.meetingLongitude != null);
+
+/** New activities and ideas need a location so they show on the trip map and route. */
+export function assertHasLocation(details: Parameters<typeof hasLocation>[0]): void {
+  if (!hasLocation(details)) {
+    throw new BadRequestException(
+      'Pick the place from the search (placeLatitude and placeLongitude), or give a meeting point with coordinates, so the activity can be shown on the map',
+    );
+  }
+}
+
 /**
  * Normalizes times to HH:MM:SS (in place) and checks the rules that need the trip:
  * day within the trip, end after start, coordinates in pairs.

@@ -22,7 +22,10 @@ import { UsersModule } from './modules/users/users.module';
 import { PlacesModule } from './modules/places/places.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { FavoritesModule } from './modules/favorites/favorites.module';
+import { LegalModule } from './modules/legal/legal.module';
 import { InterestsModule } from './modules/interests/interests.module';
+import { OrganizationsModule } from './modules/organizations/organizations.module';
+import { BookingModule } from './modules/booking/booking.module';
 
 @Module({
   imports: [
@@ -43,7 +46,10 @@ import { InterestsModule } from './modules/interests/interests.module';
     PlacesModule,
     NotificationsModule,
     FavoritesModule,
+    LegalModule,
     InterestsModule,
+    OrganizationsModule,
+    BookingModule,
   ],
   controllers: [AppController],
   providers: [

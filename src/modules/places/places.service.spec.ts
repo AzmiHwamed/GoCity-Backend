@@ -211,6 +211,187 @@ describe('PlacesService (Google Places API, fetch mocked)', () => {
     });
   });
 
+  describe('places for activities', () => {
+    it('searches around the trip city and keeps only places with coordinates', async () => {
+      fetchMock
+        .mockResolvedValueOnce(
+          json({
+            id: 'ChIJlisbon',
+            displayName: { text: 'Lisbon' },
+            location: { latitude: 38.72, longitude: -9.14 },
+          }),
+        )
+        .mockResolvedValueOnce(
+          json({
+            places: [
+              {
+                id: 'ChIJbelem',
+                displayName: { text: 'Pastéis de Belém' },
+                formattedAddress: 'R. de Belém 84',
+                location: { latitude: 38.6975, longitude: -9.2032 },
+                primaryTypeDisplayName: { text: 'Bakery' },
+                rating: 4.6,
+              },
+              { id: 'ChIJnowhere', displayName: { text: 'No location' } },
+            ],
+          }),
+        );
+      const results = await service.searchPlaces({ q: 'pasteis de belem', near: 'ChIJlisbon' });
+      expect(results).toEqual([
+        {
+          placeId: 'ChIJbelem',
+          name: 'Pastéis de Belém',
+          address: 'R. de Belém 84',
+          category: 'Bakery',
+          latitude: 38.6975,
+          longitude: -9.2032,
+          rating: 4.6,
+          googleMapsUri: null,
+        },
+      ]);
+      const { url, body, headers } = lastCall();
+      expect(url).toBe('https://places.googleapis.com/v1/places:searchText');
+      expect(body).toMatchObject({
+        textQuery: 'pasteis de belem',
+        pageSize: 8,
+        locationBias: { circle: { center: { latitude: 38.72, longitude: -9.14 }, radius: 30000 } },
+      });
+      expect(body.includedType).toBeUndefined();
+      expect(headers['X-Goog-FieldMask']).toContain('places.location');
+    });
+
+    it('works without a bias and caches the results', async () => {
+      fetchMock.mockResolvedValueOnce(json({ places: [] }));
+      await service.searchPlaces({ q: 'louvre', lat: 48.86, lng: 2.34 });
+      await service.searchPlaces({ q: 'louvre', lat: 48.86, lng: 2.34 });
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(lastCall().body.locationBias.circle.center).toEqual({
+        latitude: 48.86,
+        longitude: 2.34,
+      });
+    });
+  });
+
+  it('gives several photos of a place through the proxy, with credits, and allows them', async () => {
+    fetchMock.mockResolvedValueOnce(
+      json({
+        places: [
+          {
+            id: 'ChIJlisbon',
+            photos: [
+              {
+                name: 'places/ChIJlisbon/photos/a1',
+                authorAttributions: [{ displayName: 'Ana', uri: 'https://maps.google.com/ana' }],
+              },
+              { name: 'places/ChIJlisbon/photos/b2' },
+              { name: 'places/ChIJlisbon/photos/c3' },
+            ],
+          },
+        ],
+      }),
+    );
+    const photos = await service.placePhotos('Lisbon, Portugal', 2);
+    expect(photos).toEqual([
+      {
+        url: '/api/v1/places/photo?name=places%2FChIJlisbon%2Fphotos%2Fa1',
+        attribution: 'Ana',
+        attributionUrl: 'https://maps.google.com/ana',
+      },
+      {
+        url: '/api/v1/places/photo?name=places%2FChIJlisbon%2Fphotos%2Fb2',
+        attribution: null,
+        attributionUrl: null,
+      },
+    ]);
+    expect(lastCall().headers['X-Goog-FieldMask']).toBe('places.id,places.photos');
+    // Only the photos we handed out can be fetched through the proxy.
+    fetchMock.mockResolvedValueOnce(
+      new Response(Buffer.from('jpg'), { headers: { 'content-type': 'image/jpeg' } }),
+    );
+    await expect(service.getPhoto('places/ChIJlisbon/photos/b2')).resolves.toMatchObject({
+      contentType: 'image/jpeg',
+    });
+    await expect(service.getPhoto('places/ChIJlisbon/photos/c3')).rejects.toThrow(
+      'Photo not found',
+    );
+    // Cached: a second call doesn't ask Google again.
+    await service.placePhotos('lisbon, portugal', 3);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('place details: hours on a given day, photos, reviews, amenities', async () => {
+    fetchMock.mockResolvedValueOnce(
+      json({
+        id: 'ChIJbelem',
+        displayName: { text: 'Belém Tower' },
+        primaryTypeDisplayName: { text: 'Historical landmark' },
+        editorialSummary: { text: 'Fortified tower on the river.' },
+        formattedAddress: 'Av. Brasília, Lisboa',
+        location: { latitude: 38.69, longitude: -9.21 },
+        rating: 4.6,
+        userRatingCount: 48211,
+        priceLevel: 'PRICE_LEVEL_INEXPENSIVE',
+        currentOpeningHours: { openNow: false },
+        regularOpeningHours: {
+          weekdayDescriptions: [
+            'Monday: Closed',
+            'Tuesday: 10:00 AM – 5:30 PM',
+            'Wednesday: 10:00 AM – 5:30 PM',
+            'Thursday: 10:00 AM – 5:30 PM',
+            'Friday: 10:00 AM – 5:30 PM',
+            'Saturday: 10:00 AM – 5:30 PM',
+            'Sunday: 10:00 AM – 5:30 PM',
+          ],
+        },
+        photos: [
+          { name: 'places/ChIJbelem/photos/p1', authorAttributions: [{ displayName: 'Rui' }] },
+        ],
+        reviews: [
+          {
+            rating: 5,
+            text: { text: 'Beautiful' },
+            relativePublishTimeDescription: 'a week ago',
+            authorAttribution: { displayName: 'Ana' },
+          },
+        ],
+        goodForChildren: true,
+        allowsDogs: false,
+        restroom: true,
+      }),
+    );
+    // 2026-12-01 is a Tuesday.
+    const d = await service.getPlaceDetails('ChIJbelem', '2026-12-01');
+    expect(d).toMatchObject({
+      name: 'Belém Tower',
+      category: 'Historical landmark',
+      summary: 'Fortified tower on the river.',
+      rating: 4.6,
+      userRatingCount: 48211,
+      priceLevel: 1,
+      openNow: false,
+      hoursOnDate: 'Tuesday: 10:00 AM – 5:30 PM',
+      reviews: [{ author: 'Ana', rating: 5, text: 'Beautiful', when: 'a week ago' }],
+      amenities: ['Good for children', 'Restroom'],
+    });
+    expect(d.weeklyHours).toHaveLength(7);
+    expect(d.photos).toEqual([
+      {
+        url: '/api/v1/places/photo?name=places%2FChIJbelem%2Fphotos%2Fp1',
+        attribution: 'Rui',
+        attributionUrl: null,
+      },
+    ]);
+    expect(lastCall().headers['X-Goog-FieldMask']).toContain(
+      'regularOpeningHours.weekdayDescriptions',
+    );
+    // Monday (2026-11-30) and no date
+    expect((await service.getPlaceDetails('ChIJbelem', '2026-11-30')).hoursOnDate).toBe(
+      'Monday: Closed',
+    );
+    expect((await service.getPlaceDetails('ChIJbelem')).hoursOnDate).toBeNull();
+    expect(fetchMock).toHaveBeenCalledTimes(1); // cached
+  });
+
   describe('errors', () => {
     it('503 when no API key is configured (no request made)', async () => {
       service = new PlacesService(config('') as never, cache as never);

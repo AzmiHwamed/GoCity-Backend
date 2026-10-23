@@ -9,7 +9,7 @@ import { ACTIVITY_DETAIL_FIELDS } from '../entities/activity-details';
 import { TripActivity } from '../entities/trip-activity.entity';
 import { Trip } from '../entities/trip.entity';
 import { ActivityKind, TripMemberRole } from '../trip.enums';
-import { validateActivityDetails } from './activity-validation';
+import { assertHasLocation, hasLocation, validateActivityDetails } from './activity-validation';
 
 @Injectable()
 export class TripActivitiesService {
@@ -43,6 +43,7 @@ export class TripActivitiesService {
       createdById: userId,
     });
     validateActivityDetails(activity, trip.durationDays);
+    assertHasLocation(activity);
     return this.activities.save(activity);
   }
 
@@ -51,8 +52,11 @@ export class TripActivitiesService {
       this.getTrip(tripId),
       this.findOne(tripId, activityId),
     ]);
+    const hadLocation = hasLocation(activity);
     Object.assign(activity, dto);
     validateActivityDetails(activity, trip.durationDays);
+    // Older activities without a location can still be edited, but one can't lose its location.
+    if (hadLocation) assertHasLocation(activity);
     return this.activities.save(activity);
   }
 

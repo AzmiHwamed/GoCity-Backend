@@ -65,9 +65,7 @@ async function bootstrap() {
   logger.log(`Server running on http://localhost:${port}`);
 
   if (config.get<boolean>('swagger.enabled')) {
-    logger.log(
-      `Swagger docs at http://localhost:${port}/${config.get('swagger.path')}`,
-    );
+    logger.log(`Swagger docs at http://localhost:${port}/${config.get('swagger.path')}`);
   }
 }
 

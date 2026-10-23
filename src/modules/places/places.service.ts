@@ -15,6 +15,10 @@ import {
   HotelDto,
   HotelPageDto,
   HotelSearchOptions,
+  PlaceDetailsDto,
+  PlacePhotoDto,
+  PlaceResultDto,
+  PlaceSearchQueryDto,
 } from './dto';
 
 const API = 'https://places.googleapis.com/v1';
@@ -39,12 +43,56 @@ interface GooglePlace {
   rating?: number;
   userRatingCount?: number;
   priceLevel?: string;
-  photos?: { name?: string }[];
+  photos?: { name?: string; authorAttributions?: { displayName?: string; uri?: string }[] }[];
+  primaryTypeDisplayName?: { text?: string };
+  utcOffsetMinutes?: number;
+  editorialSummary?: { text?: string };
+  currentOpeningHours?: { openNow?: boolean };
+  regularOpeningHours?: { weekdayDescriptions?: string[] };
+  reviews?: {
+    rating?: number;
+    text?: { text?: string };
+    relativePublishTimeDescription?: string;
+    authorAttribution?: { displayName?: string };
+  }[];
+  [amenity: string]: unknown;
   websiteUri?: string;
   googleMapsUri?: string;
   nationalPhoneNumber?: string;
   addressComponents?: { longText?: string; shortText?: string; types?: string[] }[];
 }
+
+/** Boolean Google fields shown as amenities, with their labels. */
+const AMENITIES: [string, string][] = [
+  ['goodForChildren', 'Good for children'],
+  ['allowsDogs', 'Dogs allowed'],
+  ['outdoorSeating', 'Outdoor seating'],
+  ['reservable', 'Takes reservations'],
+  ['servesBreakfast', 'Serves breakfast'],
+  ['servesVegetarianFood', 'Vegetarian options'],
+  ['restroom', 'Restroom'],
+  ['goodForGroups', 'Good for groups'],
+  ['liveMusic', 'Live music'],
+];
+const DETAIL_FIELDS = [
+  'id',
+  'displayName',
+  'formattedAddress',
+  'location',
+  'rating',
+  'userRatingCount',
+  'priceLevel',
+  'photos',
+  'websiteUri',
+  'googleMapsUri',
+  'nationalPhoneNumber',
+  'primaryTypeDisplayName',
+  'editorialSummary',
+  'currentOpeningHours.openNow',
+  'regularOpeningHours.weekdayDescriptions',
+  'reviews',
+  ...AMENITIES.map(([field]) => field),
+];
 
 const HOTEL_FIELDS = [
   'id',
@@ -132,6 +180,12 @@ export class PlacesService {
     };
   }
 
+  /** Current UTC offset of a place in minutes (e.g. 60 for Lisbon in winter), or null. */
+  async getUtcOffsetMinutes(placeId: string): Promise<number | null> {
+    const place = await this.getPlace(placeId, 'en', ['utcOffsetMinutes']);
+    return place.utcOffsetMinutes ?? null;
+  }
+
   // ── Hotels ────────────────────────────────────────────────
 
   /**
@@ -191,6 +245,130 @@ export class PlacesService {
     const place = await this.getPlace(placeId, lang, HOTEL_FIELDS);
     await this.allowPhotos([place]);
     return this.toHotel(place);
+  }
+
+  // ── Places (for activities) ────────────────────────────────
+
+  /**
+   * Any place by text ("time out market", "belém tower"), biased around the trip's city
+   * (`near` placeId) or lat+lng. Results without coordinates are dropped (they can't be mapped).
+   */
+  async searchPlaces(opts: PlaceSearchQueryDto): Promise<PlaceResultDto[]> {
+    let lat = opts.lat;
+    let lng = opts.lng;
+    if (opts.near) {
+      const near = await this.getCity(opts.near, opts.lang);
+      lat = near.latitude ?? undefined;
+      lng = near.longitude ?? undefined;
+    }
+    const body: Record<string, unknown> = {
+      textQuery: opts.q.trim(),
+      languageCode: opts.lang ?? 'en',
+      pageSize: opts.limit ?? 8,
+    };
+    if (lat !== undefined && lng !== undefined) {
+      body.locationBias = { circle: { center: { latitude: lat, longitude: lng }, radius: 30000 } };
+    }
+    return this.cached(`places:search:${JSON.stringify(body)}`, SEARCH_TTL_MS, async () => {
+      const fields = [
+        'id',
+        'displayName',
+        'formattedAddress',
+        'location',
+        'rating',
+        'googleMapsUri',
+        'primaryTypeDisplayName',
+      ];
+      const data = await this.post<{ places?: GooglePlace[] }>(
+        'places:searchText',
+        body,
+        fields.map((f) => `places.${f}`).join(','),
+      );
+      return (data.places ?? [])
+        .filter((p) => p.id && p.location?.latitude != null && p.location?.longitude != null)
+        .map((p) => ({
+          placeId: p.id as string,
+          name: p.displayName?.text ?? '',
+          address: p.formattedAddress ?? null,
+          category: p.primaryTypeDisplayName?.text ?? null,
+          latitude: p.location?.latitude as number,
+          longitude: p.location?.longitude as number,
+          rating: p.rating ?? null,
+          googleMapsUri: p.googleMapsUri ?? null,
+        }));
+    });
+  }
+
+  /**
+   * Up to `max` photos of the best match for a text query ("Lisbon, Portugal"), served through
+   * GET /places/photo. Empty when Google has no photos.
+   */
+  async placePhotos(query: string, max = 5): Promise<PlacePhotoDto[]> {
+    const photos = await this.cached(
+      `places:photos:${query.toLowerCase()}`,
+      DETAILS_TTL_MS,
+      async () => {
+        const data = await this.post<{ places?: GooglePlace[] }>(
+          'places:searchText',
+          { textQuery: query, pageSize: 1, languageCode: 'en' },
+          'places.id,places.photos',
+        );
+        return (data.places?.[0]?.photos ?? []).filter((p) => p.name).slice(0, 10);
+      },
+    );
+    const picked = photos.slice(0, max);
+    // Re-allow on every call: the list can outlive the proxy's allow-list entries.
+    for (const p of picked) await this.cache.set(`places:photo-ok:${p.name}`, true, DETAILS_TTL_MS);
+    return picked.map((p) => ({
+      url: `${this.photoPath}?name=${encodeURIComponent(p.name as string)}`,
+      attribution: p.authorAttributions?.[0]?.displayName ?? null,
+      attributionUrl: p.authorAttributions?.[0]?.uri ?? null,
+    }));
+  }
+
+  /**
+   * Details for a place card: photos, rating, hours (also on a given date), contact, summary,
+   * a few reviews and amenities. Cached for a day.
+   */
+  async getPlaceDetails(placeId: string, date?: string, lang = 'en'): Promise<PlaceDetailsDto> {
+    const p = await this.getPlace(placeId, lang, DETAIL_FIELDS);
+    const photos = (p.photos ?? []).filter((ph) => ph.name).slice(0, 6);
+    for (const ph of photos)
+      await this.cache.set(`places:photo-ok:${ph.name}`, true, DETAILS_TTL_MS);
+    const weeklyHours = p.regularOpeningHours?.weekdayDescriptions ?? [];
+    // Google lists Monday first; getUTCDay() is 0 for Sunday.
+    const dayIndex = date ? (new Date(`${date}T00:00:00Z`).getUTCDay() + 6) % 7 : -1;
+    const level = p.priceLevel ? PRICE_LEVELS.indexOf(p.priceLevel) : -1;
+    return {
+      placeId: p.id ?? placeId,
+      name: (p.displayName?.text as string) ?? '',
+      category: p.primaryTypeDisplayName?.text ?? null,
+      summary: p.editorialSummary?.text ?? null,
+      address: p.formattedAddress ?? null,
+      latitude: p.location?.latitude ?? null,
+      longitude: p.location?.longitude ?? null,
+      rating: p.rating ?? null,
+      userRatingCount: p.userRatingCount ?? null,
+      priceLevel: level >= 0 ? level : null,
+      phone: p.nationalPhoneNumber ?? null,
+      websiteUri: p.websiteUri ?? null,
+      googleMapsUri: p.googleMapsUri ?? null,
+      openNow: p.currentOpeningHours?.openNow ?? null,
+      weeklyHours,
+      hoursOnDate: dayIndex >= 0 ? (weeklyHours[dayIndex] ?? null) : null,
+      photos: photos.map((ph) => ({
+        url: `${this.photoPath}?name=${encodeURIComponent(ph.name as string)}`,
+        attribution: ph.authorAttributions?.[0]?.displayName ?? null,
+        attributionUrl: ph.authorAttributions?.[0]?.uri ?? null,
+      })),
+      reviews: (p.reviews ?? []).slice(0, 3).map((r) => ({
+        author: r.authorAttribution?.displayName ?? null,
+        rating: r.rating ?? null,
+        text: r.text?.text ?? null,
+        when: r.relativePublishTimeDescription ?? null,
+      })),
+      amenities: AMENITIES.filter(([field]) => p[field] === true).map(([, label]) => label),
+    };
   }
 
   // ── Photos ────────────────────────────────────────────────

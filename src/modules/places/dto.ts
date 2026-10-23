@@ -38,6 +38,60 @@ export class CitySearchQueryDto {
   sessionToken?: string;
 }
 
+/** Places for activities: museums, restaurants, viewpoints… near the trip's city. */
+export class PlaceSearchQueryDto {
+  @ApiProperty({ example: 'pastéis de belém', description: 'What the user typed (2+ characters)' })
+  @IsString()
+  @MinLength(2)
+  @MaxLength(150)
+  q: string;
+
+  @ApiPropertyOptional({
+    description: 'Bias results around this place (e.g. the trip city placeId)',
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  @Matches(/^[\w-]+$/, { message: 'near has invalid characters' })
+  near?: string;
+
+  @ApiPropertyOptional({ example: 38.7223, description: 'Or bias around lat+lng' })
+  @ValidateIf((o: PlaceSearchQueryDto) => o.lng !== undefined || o.lat !== undefined)
+  @Type(() => Number)
+  @IsLatitude()
+  lat?: number;
+
+  @ApiPropertyOptional({ example: -9.1393 })
+  @ValidateIf((o: PlaceSearchQueryDto) => o.lat !== undefined || o.lng !== undefined)
+  @Type(() => Number)
+  @IsLongitude()
+  lng?: number;
+
+  @ApiPropertyOptional({ default: 8, maximum: 20 })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(20)
+  limit?: number;
+
+  @ApiPropertyOptional({ example: 'en', default: 'en' })
+  @IsOptional()
+  @Matches(LANG, { message: 'lang must look like en or pt-BR' })
+  lang?: string;
+}
+
+export class PlaceResultDto {
+  @ApiProperty() placeId: string;
+  @ApiProperty({ example: 'Pastéis de Belém' }) name: string;
+  @ApiPropertyOptional({ nullable: true }) address: string | null;
+  @ApiPropertyOptional({ nullable: true, example: 'Bakery' }) category: string | null;
+  @ApiProperty({ example: 38.6975 }) latitude: number;
+  @ApiProperty({ example: -9.2032 }) longitude: number;
+  @ApiPropertyOptional({ nullable: true }) rating: number | null;
+  @ApiPropertyOptional({ nullable: true }) googleMapsUri: string | null;
+}
+
 export class LangQueryDto {
   @ApiPropertyOptional({ example: 'en', default: 'en' })
   @IsOptional()
@@ -170,6 +224,68 @@ export class HotelDto {
   @ApiPropertyOptional({ nullable: true }) websiteUri: string | null;
   @ApiPropertyOptional({ nullable: true }) googleMapsUri: string | null;
   @ApiPropertyOptional({ nullable: true }) phone: string | null;
+}
+
+/** A Google photo served through our proxy, with the credit Google requires us to show. */
+export class PlacePhotoDto {
+  @ApiProperty({ example: '/api/v1/places/photo?name=places%2FChIJ...%2Fphotos%2F...' })
+  url: string;
+  @ApiPropertyOptional({
+    nullable: true,
+    example: 'Maria Silva',
+    description: 'Show as "Photo: …"',
+  })
+  attribution: string | null;
+  @ApiPropertyOptional({ nullable: true }) attributionUrl: string | null;
+}
+
+export class PlaceDetailsQueryDto {
+  @ApiPropertyOptional({
+    example: '2026-12-01',
+    description: 'Also return the opening hours on this day (e.g. the activity date)',
+  })
+  @IsOptional()
+  @Matches(/^\d{4}-\d{2}-\d{2}$/, { message: 'date must be YYYY-MM-DD' })
+  date?: string;
+}
+
+export class PlaceReviewDto {
+  @ApiPropertyOptional({ nullable: true, example: 'Ana' }) author: string | null;
+  @ApiPropertyOptional({ nullable: true, example: 5 }) rating: number | null;
+  @ApiPropertyOptional({ nullable: true }) text: string | null;
+  @ApiPropertyOptional({ nullable: true, example: '2 weeks ago' }) when: string | null;
+}
+
+/** Everything a place card needs (activity, hotel…). */
+export class PlaceDetailsDto {
+  @ApiProperty() placeId: string;
+  @ApiProperty({ example: 'Belém Tower' }) name: string;
+  @ApiPropertyOptional({ nullable: true, example: 'Historical landmark' }) category: string | null;
+  @ApiPropertyOptional({ nullable: true }) summary: string | null;
+  @ApiPropertyOptional({ nullable: true }) address: string | null;
+  @ApiPropertyOptional({ nullable: true }) latitude: number | null;
+  @ApiPropertyOptional({ nullable: true }) longitude: number | null;
+  @ApiPropertyOptional({ nullable: true, example: 4.6 }) rating: number | null;
+  @ApiPropertyOptional({ nullable: true, example: 48211 }) userRatingCount: number | null;
+  @ApiPropertyOptional({ nullable: true, example: 2, description: '0 free … 4 very expensive' })
+  priceLevel: number | null;
+  @ApiPropertyOptional({ nullable: true }) phone: string | null;
+  @ApiPropertyOptional({ nullable: true }) websiteUri: string | null;
+  @ApiPropertyOptional({ nullable: true }) googleMapsUri: string | null;
+  @ApiPropertyOptional({ nullable: true, description: 'Right now (Google)' }) openNow:
+    boolean | null;
+  @ApiProperty({ type: [String], example: ['Monday: 10:00 AM – 5:30 PM'] }) weeklyHours: string[];
+  @ApiPropertyOptional({
+    nullable: true,
+    example: 'Tuesday: 10:00 AM – 5:30 PM',
+    description: 'Hours on the requested date',
+  })
+  hoursOnDate: string | null;
+  @ApiProperty({ type: [PlacePhotoDto] }) photos: PlacePhotoDto[];
+  @ApiProperty({ type: [PlaceReviewDto], description: 'Up to 3, as Google returns them' })
+  reviews: PlaceReviewDto[];
+  @ApiProperty({ type: [String], example: ['Wheelchair accessible entrance', 'Good for children'] })
+  amenities: string[];
 }
 
 export class HotelPageDto {

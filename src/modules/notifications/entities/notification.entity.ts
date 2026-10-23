@@ -11,6 +11,10 @@ export class Notification extends BaseEntity {
   @ApiProperty() @Column({ length: 150 }) title: string;
   @ApiProperty() @Column({ type: 'text' }) body: string;
   @ApiProperty({ example: 'trip_invitation' }) @Column({ length: 50 }) type: string;
-  @ApiProperty({ required: false }) @Column({ name: 'data_json', type: 'json', nullable: true }) data?: Record<string, string> | null;
-  @ApiProperty({ required: false }) @Column({ name: 'read_at', type: 'datetime', nullable: true }) readAt?: Date | null;
+  @ApiProperty({ required: false })
+  @Column({ name: 'data_json', type: 'json', nullable: true })
+  data?: Record<string, string> | null;
+  @ApiProperty({ required: false })
+  @Column({ name: 'read_at', type: 'datetime', nullable: true })
+  readAt?: Date | null;
 }

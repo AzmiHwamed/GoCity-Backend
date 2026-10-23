@@ -33,8 +33,19 @@ import { TripMembersService } from './services/trip-members.service';
 import { TripExpensesService } from './services/trip-expenses.service';
 import { TripGalleryService } from './services/trip-gallery.service';
 import { TripsService } from './services/trips.service';
+import { TripRouteService } from './services/trip-route.service';
+import { TripRouteController } from './controllers/trip-route.controller';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { Favorite } from '../favorites/entities/favorite.entity';
+import { OrganizationProgram } from '../organizations/entities/organization-program.entity';
+import { TripMessage } from './entities/trip-message.entity';
+import { TripChatRead } from './entities/trip-chat-read.entity';
+import { TripMessagesController } from './controllers/trip-messages.controller';
+import { TripMessagesService } from './services/trip-messages.service';
+import { TripChatGateway } from './trip-chat.gateway';
+import { ConfigService } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
+import { AuthConfig } from '../../config/auth.config';
 
 @Module({
   imports: [
@@ -49,7 +60,14 @@ import { Favorite } from '../favorites/entities/favorite.entity';
       TripExpense,
       Media,
       Favorite,
+      OrganizationProgram,
+      TripMessage,
+      TripChatRead,
     ]),
+    JwtModule.registerAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({ secret: config.getOrThrow<AuthConfig>('auth').jwtSecret }),
+    }),
     UsersModule,
     MailModule,
     MediaModule,
@@ -58,6 +76,7 @@ import { Favorite } from '../favorites/entities/favorite.entity';
   ],
   controllers: [
     TripsController,
+    TripRouteController,
     TripMembersController,
     TripInvitationsController,
     MyInvitationsController,
@@ -66,9 +85,11 @@ import { Favorite } from '../favorites/entities/favorite.entity';
     UserProfilesController,
     TripGalleryController,
     TripExpensesController,
+    TripMessagesController,
   ],
   providers: [
     TripAccessService,
+    TripRouteService,
     TripRoleGuard,
     TripsService,
     TripGalleryService,
@@ -77,6 +98,8 @@ import { Favorite } from '../favorites/entities/favorite.entity';
     TripInvitationsService,
     TripActivitiesService,
     TripIdeasService,
+    TripMessagesService,
+    TripChatGateway,
   ],
   // For features that live inside a trip (e.g. chat): reuse @TripRole + TripRoleGuard.
   exports: [TripAccessService, TripRoleGuard, TypeOrmModule],

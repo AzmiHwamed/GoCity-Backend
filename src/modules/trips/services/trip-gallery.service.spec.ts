@@ -43,7 +43,7 @@ describe('TripGalleryService', () => {
   const trips = { update: jest.fn() };
   let nextId = 100;
   const mediaService = {
-    assertValidImage: jest.fn(),
+    assertValidTripMedia: jest.fn(),
     upload: jest.fn(async () => {
       const m = img(nextId++, { position: null });
       rows.push(m);
@@ -79,7 +79,7 @@ describe('TripGalleryService', () => {
   });
 
   it('validates every file before writing any', async () => {
-    mediaService.assertValidImage
+    mediaService.assertValidTripMedia
       .mockImplementationOnce(() => undefined)
       .mockImplementationOnce(() => {
         throw new UnsupportedMediaTypeException();

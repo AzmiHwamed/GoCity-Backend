@@ -4,6 +4,7 @@ import { Media } from '../media/entities/media.entity';
 import { PlacesModule } from '../places/places.module';
 import { TripActivity } from '../trips/entities/trip-activity.entity';
 import { Trip } from '../trips/entities/trip.entity';
+import { OrganizationProgram } from '../organizations/entities/organization-program.entity';
 import { TripsModule } from '../trips/trips.module';
 import { Favorite } from './entities/favorite.entity';
 import { FavoritesController } from './favorites.controller';
@@ -11,7 +12,7 @@ import { FavoritesService } from './favorites.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Favorite, Trip, TripActivity, Media]),
+    TypeOrmModule.forFeature([Favorite, Trip, TripActivity, Media, OrganizationProgram]),
     TripsModule, // TripAccessService: who can see a trip
     PlacesModule,
   ],

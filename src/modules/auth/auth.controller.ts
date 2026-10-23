@@ -13,6 +13,7 @@ import { MessageResponseDto } from '../../common/dto/message-response.dto';
 import { ChangePasswordDto } from '../users/dto/change-password.dto';
 import { User } from '../users/entities/user.entity';
 import { UsersService } from '../users/users.service';
+import { LegalService } from '../legal/legal.service';
 import { AuthService } from './auth.service';
 import { CurrentUser, Public } from './decorators';
 import { Client } from './decorators/client-info.decorator';
@@ -21,6 +22,8 @@ import {
   AuthResponseDto,
   ForgotPasswordDto,
   LoginDto,
+  SocialLoginDto,
+  OrganizationRegisterDto,
   RefreshTokenDto,
   RegisterDto,
   ResetPasswordDto,
@@ -35,6 +38,7 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly usersService: UsersService,
+    private readonly legal: LegalService,
   ) {}
 
   @Public()
@@ -45,6 +49,15 @@ export class AuthController {
   @ResponseTitle('Verification code sent')
   register(@Body() dto: RegisterDto): Promise<MessageResponseDto> {
     return this.authService.register(dto);
+  }
+
+  @Public()
+  @Post('register-organization')
+  @ApiOperation({ summary: 'Sign up an organization account' })
+  @ApiCreatedResponse({ type: MessageResponseDto })
+  @ResponseTitle('Organization verification code sent')
+  registerOrganization(@Body() dto: OrganizationRegisterDto): Promise<MessageResponseDto> {
+    return this.authService.registerOrganization(dto);
   }
 
   @Public()
@@ -70,6 +83,17 @@ export class AuthController {
   @ResponseTitle('Login successful')
   login(@Body() dto: LoginDto, @Client() client: ClientInfo): Promise<AuthResponseDto> {
     return this.authService.login(dto, client);
+  }
+
+  @Public()
+  @Post('oauth/login')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Log in with a Firebase ID token from Google or Facebook sign-in' })
+  @ApiOkResponse({ type: AuthResponseDto })
+  @ApiUnauthorizedResponse({ description: 'The provider token is invalid or the provider is not configured' })
+  @ResponseTitle('Login successful')
+  oauthLogin(@Body() dto: SocialLoginDto, @Client() client: ClientInfo): Promise<AuthResponseDto> {
+    return this.authService.oauthLogin(dto, client);
   }
 
   @Public()
@@ -117,8 +141,10 @@ export class AuthController {
   @ApiOperation({ summary: 'Get the logged-in user' })
   @ApiOkResponse({ type: User })
   @ResponseTitle('Current user fetched')
-  me(@CurrentUser('id') userId: number): Promise<User> {
-    return this.usersService.findOne(userId);
+  async me(@CurrentUser('id') userId: number): Promise<User> {
+    const user = await this.usersService.findOne(userId);
+    user.legal = await this.legal.status(userId);
+    return user;
   }
 
   @Patch('change-password')

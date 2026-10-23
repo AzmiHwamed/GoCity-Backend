@@ -183,7 +183,10 @@ export class UsersService {
     if (avatar) this.mediaService.assertValidImage(avatar);
     if (dto.email && dto.email !== user.email) await this.ensureEmailIsFree(dto.email);
     // PATCH treats null as "leave this field unchanged" rather than clearing profile data.
-    Object.assign(user, Object.fromEntries(Object.entries(dto).filter(([, value]) => value != null)));
+    Object.assign(
+      user,
+      Object.fromEntries(Object.entries(dto).filter(([, value]) => value != null)),
+    );
 
     if (user.role === UserRole.ORGANIZATION && !user.organizationName) {
       throw new BadRequestException('organizationName is required for organizations');
@@ -203,8 +206,12 @@ export class UsersService {
   ): Promise<User> {
     const user = await this.findOne(id);
     if (avatar) this.mediaService.assertValidImage(avatar);
-    const { organizationName, interests, ...rest } = dto;
-    Object.assign(user, Object.fromEntries(Object.entries(rest).filter(([, value]) => value != null)));
+    const { organizationName, interests, homeAirportCode, ...rest } = dto;
+    Object.assign(
+      user,
+      Object.fromEntries(Object.entries(rest).filter(([, value]) => value != null)),
+    );
+    if (homeAirportCode !== undefined) user.homeAirportCode = homeAirportCode; // null clears it
     if (organizationName != null && user.role === UserRole.ORGANIZATION) {
       user.organizationName = organizationName;
     }

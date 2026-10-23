@@ -4,6 +4,7 @@ import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { MailService } from '../../mail/mail.service';
+import { NotificationsService } from '../../notifications/notifications.service';
 import { UserRole } from '../../users/entities/user.entity';
 import { UsersService } from '../../users/users.service';
 import { TripInvitation } from '../entities/trip-invitation.entity';
@@ -49,6 +50,7 @@ describe('Trip invitations and invite link', () => {
   };
   const usersService = { findById: jest.fn(), findByEmail: jest.fn() };
   const mailService = { sendTripInvitation: jest.fn() };
+  const notifications = { create: jest.fn() };
   const em = {
     findOne: jest.fn(),
     create: jest.fn((_e: unknown, d: object) => d),
@@ -70,6 +72,7 @@ describe('Trip invitations and invite link', () => {
         { provide: getRepositoryToken(TripInvitation), useValue: invitationsRepo },
         { provide: UsersService, useValue: usersService },
         { provide: MailService, useValue: mailService },
+        { provide: NotificationsService, useValue: notifications },
         { provide: TripIdeasService, useValue: { onMemberLeft: jest.fn() } },
         { provide: DataSource, useValue: dataSource },
         { provide: ConfigService, useValue: { get: () => 'https://app.example.com' } },
@@ -94,6 +97,14 @@ describe('Trip invitations and invite link', () => {
       expect(mailService.sendTripInvitation).toHaveBeenCalledWith(
         expect.objectContaining({ to: 'friend@x.com', hasAccount: true, tripName: 'Lisbon' }),
       );
+      expect(notifications.create).toHaveBeenCalledWith(
+        2,
+        expect.objectContaining({
+          type: 'trip_invitation',
+          body: 'Jane Doe invited you to Lisbon.',
+          data: expect.objectContaining({ tripId: '10' }),
+        }),
+      );
     });
 
     it('invites an email without an account (viewer by default)', async () => {
@@ -107,6 +118,7 @@ describe('Trip invitations and invite link', () => {
       expect(mailService.sendTripInvitation).toHaveBeenCalledWith(
         expect.objectContaining({ hasAccount: false }),
       );
+      expect(notifications.create).not.toHaveBeenCalled(); // no account to notify
     });
 
     it('needs exactly one of email or userId', async () => {

@@ -18,6 +18,10 @@ import {
   HotelSearchQueryDto,
   LangQueryDto,
   PhotoQueryDto,
+  PlaceDetailsDto,
+  PlaceDetailsQueryDto,
+  PlaceResultDto,
+  PlaceSearchQueryDto,
 } from './dto';
 import { PlacesService } from './places.service';
 
@@ -48,6 +52,19 @@ export class PlacesController {
     return this.places.getCity(placeId, query.lang);
   }
 
+  @Get('search')
+  @ApiOperation({
+    summary: 'Find a place for an activity (museum, restaurant, viewpoint…)',
+    description:
+      'Free text, biased around `near` (e.g. the trip city placeId) or lat+lng. Every result ' +
+      'has coordinates, so it can be shown on the trip map.',
+  })
+  @ApiOkResponse({ type: [PlaceResultDto] })
+  @ResponseTitle('Places found')
+  searchPlaces(@Query() query: PlaceSearchQueryDto): Promise<PlaceResultDto[]> {
+    return this.places.searchPlaces(query);
+  }
+
   @Get('hotels')
   @ApiOperation({
     summary: 'Hotel suggestions',
@@ -63,6 +80,22 @@ export class PlacesController {
       throw new BadRequestException('Give placeId, city, lat+lng or q');
     }
     return this.places.findHotels(query);
+  }
+
+  @Get('details/:placeId')
+  @ApiOperation({
+    summary: 'Place card details (activity, hotel…): photos, rating, hours, contact, reviews',
+    description:
+      'Give date=YYYY-MM-DD (e.g. the activity date) to get hoursOnDate for that weekday. ' +
+      'Photos come through GET /places/photo. Cached for a day.',
+  })
+  @ApiOkResponse({ type: PlaceDetailsDto })
+  @ResponseTitle('Place details fetched')
+  details(
+    @Param('placeId') placeId: string,
+    @Query() query: PlaceDetailsQueryDto,
+  ): Promise<PlaceDetailsDto> {
+    return this.places.getPlaceDetails(placeId, query.date);
   }
 
   @Public() // <img src> can't send a token; only photos from our own results are served

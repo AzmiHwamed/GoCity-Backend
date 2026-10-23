@@ -7,6 +7,7 @@ import { PlacesService } from '../places/places.service';
 import { TripAccessService } from '../trips/access/trip-access.service';
 import { TripActivity } from '../trips/entities/trip-activity.entity';
 import { Trip } from '../trips/entities/trip.entity';
+import { OrganizationProgram } from '../organizations/entities/organization-program.entity';
 import {
   AddFavoriteDto,
   FavoriteCountsDto,
@@ -36,6 +37,7 @@ export class FavoritesService {
     @InjectRepository(Trip) private readonly trips: Repository<Trip>,
     @InjectRepository(TripActivity) private readonly activities: Repository<TripActivity>,
     @InjectRepository(Media) private readonly media: Repository<Media>,
+    @InjectRepository(OrganizationProgram) private readonly programs: Repository<OrganizationProgram>,
     private readonly access: TripAccessService,
     private readonly places: PlacesService,
   ) {}
@@ -92,7 +94,7 @@ export class FavoritesService {
       .where('f.userId = :userId', { userId })
       .groupBy('f.type')
       .getRawMany<{ type: FavoriteType; count: string }>();
-    const counts: FavoriteCountsDto = { all: 0, trip: 0, activity: 0, hotel: 0, place: 0 };
+    const counts: FavoriteCountsDto = { all: 0, trip: 0, activity: 0, hotel: 0, place: 0, program: 0 };
     for (const r of rows) {
       counts[r.type] = Number(r.count);
       counts.all += Number(r.count);
@@ -131,6 +133,12 @@ export class FavoritesService {
           const c = await this.places.getCity(dto.targetId);
           return { title: c.name, subtitle: c.country ?? c.address, imageUrl: null };
         });
+      case FavoriteType.PROGRAM: {
+        const program = await this.programs.findOne({ where: { id: numericId(dto.targetId, 'Program'), isPublished: true } });
+        if (!program) throw new NotFoundException('Program not found');
+        const image = await this.media.findOne({ where: { type: MediaType.PROGRAM, entityId: program.id }, order: { createdAt: 'ASC' } });
+        return { title: program.title, subtitle: program.destination ?? null, imageUrl: image?.url ?? null };
+      }
     }
   }
 
@@ -172,6 +180,8 @@ export class FavoritesService {
     const visible = new Set<number>();
     for (const t of trips) if (await this.access.canView(t, user)) visible.add(t.id);
     const covers = await this.covers(trips.filter((t) => visible.has(t.id)));
+    const programIds = ids(FavoriteType.PROGRAM);
+    const programs = programIds.length ? await this.programs.find({ where: { id: In(programIds), isPublished: true } }) : [];
 
     return rows.map((f) => {
       const base: FavoriteViewDto = {
@@ -208,6 +218,11 @@ export class FavoritesService {
           imageUrl: covers.get(trip.id) ?? null,
           tripId: trip.id,
         };
+      }
+      if (f.type === FavoriteType.PROGRAM) {
+        const program = programs.find((p) => p.id === Number(f.targetId));
+        if (!program) return { ...base, available: false, mapsUrl: null };
+        return { ...base, title: program.title, subtitle: program.destination, mapsUrl: null };
       }
       return { ...base, mapsUrl: mapsUrl(f.targetId) };
     });

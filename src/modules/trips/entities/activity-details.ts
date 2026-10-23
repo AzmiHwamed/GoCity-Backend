@@ -47,6 +47,14 @@ export abstract class ActivityDetails extends BaseEntity {
   @Column({ name: 'place_name', type: 'varchar', length: 200, nullable: true })
   placeName: string | null;
 
+  @ApiPropertyOptional({
+    example: 'ChIJ6Qx3o3gzGQ0R9ghlS2XuRaA',
+    nullable: true,
+    description: 'Google placeId when the place was picked from /places/search',
+  })
+  @Column({ name: 'place_id', type: 'varchar', length: 255, nullable: true })
+  placeId: string | null;
+
   @ApiPropertyOptional({ example: 38.7158, nullable: true })
   @coordinate('place_latitude')
   placeLatitude: number | null;
@@ -91,6 +99,7 @@ export const ACTIVITY_DETAIL_FIELDS = [
   'startTime',
   'endTime',
   'placeName',
+  'placeId',
   'placeLatitude',
   'placeLongitude',
   'meetingPointText',

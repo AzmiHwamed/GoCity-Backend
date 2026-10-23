@@ -53,6 +53,16 @@ export class ActivityDetailsDto {
   @MaxLength(200)
   placeName?: string | null;
 
+  @ApiPropertyOptional({
+    example: 'ChIJ6Qx3o3gzGQ0R9ghlS2XuRaA',
+    description: 'Google placeId from GET /places/search (send null to clear)',
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  @Matches(/^[\w-]+$/, { message: 'placeId has invalid characters' })
+  placeId?: string | null;
+
   @ApiPropertyOptional({ example: 38.7158, description: 'Give together with placeLongitude' })
   @IsOptional()
   @IsNumber()

@@ -38,6 +38,7 @@ describe('TripIdeasService (voting)', () => {
     }),
   };
   const membersRepo = { find: jest.fn(async () => memberIds.map((userId) => ({ userId }))) };
+  const activitiesRepo = { find: jest.fn(async () => []) };
   const createdActivities: Partial<TripActivity>[] = [];
   const em = {
     update: jest.fn(async (_entity: unknown, where: { status?: IdeaStatus }, set: object) => {
@@ -76,6 +77,7 @@ describe('TripIdeasService (voting)', () => {
       providers: [
         TripIdeasService,
         { provide: getRepositoryToken(TripIdea), useValue: ideasRepo },
+        { provide: getRepositoryToken(TripActivity), useValue: activitiesRepo },
         { provide: getRepositoryToken(IdeaVote), useValue: votesRepo },
         { provide: getRepositoryToken(TripMember), useValue: membersRepo },
         { provide: getRepositoryToken(Trip), useValue: {} },

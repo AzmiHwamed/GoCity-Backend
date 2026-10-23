@@ -119,7 +119,19 @@ describe('TripsService', () => {
 
   describe('create / update', () => {
     it('makes the creator the owner', async () => {
-      await service.create(1, { name: 'Lisbon', startDate: '2026-11-01', endDate: '2026-11-03' });
+      places.getCity.mockResolvedValueOnce({
+        placeId: 'ChIJlisbon',
+        name: 'Lisbon',
+        country: 'Portugal',
+        latitude: 38.72,
+        longitude: -9.14,
+      });
+      await service.create(1, {
+        name: 'Lisbon',
+        startDate: '2026-11-01',
+        endDate: '2026-11-03',
+        cityPlaceId: 'ChIJlisbon',
+      });
       expect(saved).toContainEqual(
         expect.objectContaining({ ownerId: 1, travelersCount: 1, inviteCode: expect.any(String) }),
       );
@@ -409,30 +421,32 @@ describe('TripsService', () => {
           cityPlaceId: 'ChIJlisbon',
         }),
       ).rejects.toBeInstanceOf(ServiceUnavailableException);
-
-      await service.create(1, {
-        name: 'x',
-        startDate: '2026-11-01',
-        endDate: '2026-11-02',
-        city: 'Porto',
-      });
-      expect(places.getCity).toHaveBeenCalledTimes(1);
-      expect(saved.at(-2)).toMatchObject({ city: 'Porto', cityPlaceId: null });
     });
 
-    it('clears the whole city with cityPlaceId: null', async () => {
-      tripsRepo.findOne.mockResolvedValueOnce(
-        trip({ city: 'Lisbon', cityPlaceId: 'x', country: 'PT' }),
-      );
-      await service.update(10, { cityPlaceId: null });
-      expect(tripsRepo.save).toHaveBeenCalledWith(
-        expect.objectContaining({
-          city: null,
-          cityPlaceId: null,
-          country: null,
-          cityLatitude: null,
-        }),
-      );
+    it('needs a picked city (cityPlaceId) to create a trip, so it has coordinates', async () => {
+      for (const city of [{}, { city: 'Porto' }]) {
+        await expect(
+          service.create(1, { name: 'x', startDate: '2026-11-01', endDate: '2026-11-02', ...city }),
+        ).rejects.toThrow('Pick the destination city from the search');
+      }
+      expect(places.getCity).not.toHaveBeenCalled();
+      expect(saved).toHaveLength(0);
+    });
+
+    it("can't clear the city or change it to a typed name without coordinates", async () => {
+      for (const dto of [{ cityPlaceId: null }, { city: 'Porto' }, { city: null }]) {
+        tripsRepo.findOne.mockResolvedValueOnce(
+          trip({ city: 'Lisbon', cityPlaceId: 'x', country: 'PT' }),
+        );
+        await expect(service.update(10, dto)).rejects.toThrow('Pick the destination city');
+      }
+      expect(tripsRepo.save).not.toHaveBeenCalled();
+    });
+
+    it('older trips without a city can still be edited', async () => {
+      tripsRepo.findOne.mockResolvedValueOnce(trip({ city: null, cityPlaceId: null }));
+      await service.update(10, { name: 'Renamed' });
+      expect(tripsRepo.save).toHaveBeenCalledWith(expect.objectContaining({ name: 'Renamed' }));
     });
   });
 

@@ -10,8 +10,12 @@ export class AddInterests1791377236641 implements MigrationInterface {
     await queryRunner.query(
       'CREATE TABLE `user_interests` (`user_id` int NOT NULL, `interest_id` int NOT NULL, INDEX `IDX_user_interests_user` (`user_id`), INDEX `IDX_user_interests_interest` (`interest_id`), PRIMARY KEY (`user_id`, `interest_id`)) ENGINE=InnoDB',
     );
-    await queryRunner.query('ALTER TABLE `user_interests` ADD CONSTRAINT `FK_user_interests_user` FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE ON UPDATE CASCADE');
-    await queryRunner.query('ALTER TABLE `user_interests` ADD CONSTRAINT `FK_user_interests_interest` FOREIGN KEY (`interest_id`) REFERENCES `interests`(`id`) ON DELETE CASCADE ON UPDATE CASCADE');
+    await queryRunner.query(
+      'ALTER TABLE `user_interests` ADD CONSTRAINT `FK_user_interests_user` FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE ON UPDATE CASCADE',
+    );
+    await queryRunner.query(
+      'ALTER TABLE `user_interests` ADD CONSTRAINT `FK_user_interests_interest` FOREIGN KEY (`interest_id`) REFERENCES `interests`(`id`) ON DELETE CASCADE ON UPDATE CASCADE',
+    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {

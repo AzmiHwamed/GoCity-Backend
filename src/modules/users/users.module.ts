@@ -8,9 +8,14 @@ import { Trip } from '../trips/entities/trip.entity';
 import { Interest } from '../interests/entities/interest.entity';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
+import { LegalModule } from '../legal/legal.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, RefreshToken, Trip, Favorite, Interest]), MediaModule],
+  imports: [
+    TypeOrmModule.forFeature([User, RefreshToken, Trip, Favorite, Interest]),
+    MediaModule,
+    LegalModule,
+  ],
   controllers: [UsersController],
   providers: [UsersService],
   exports: [UsersService],

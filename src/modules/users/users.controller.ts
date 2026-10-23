@@ -37,6 +37,7 @@ import { UpdateProfileDto } from './dto/update-profile.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User, UserRole } from './entities/user.entity';
 import { UsersService } from './users.service';
+import { LegalService } from '../legal/legal.service';
 import { ResponseTitle } from '../../common/response/api-response';
 
 // Swagger body schemas for the update routes (all fields optional, avatar is a file).
@@ -67,7 +68,10 @@ const withAvatar = (fields: SchemaProps) => ({
 @ApiBearerAuth()
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly legal: LegalService,
+  ) {}
 
   // ── Current user ──────────────────────────────────────────
   // Declared before ':id' so "me" is not parsed as an id.
@@ -76,8 +80,10 @@ export class UsersController {
   @ApiOperation({ summary: 'Get my profile' })
   @ApiOkResponse({ type: User })
   @ResponseTitle('Profile fetched')
-  getMe(@CurrentUser('id') userId: number): Promise<User> {
-    return this.usersService.findOne(userId);
+  async getMe(@CurrentUser('id') userId: number): Promise<User> {
+    const user = await this.usersService.findOne(userId);
+    user.legal = await this.legal.status(userId);
+    return user;
   }
 
   @Patch('me')

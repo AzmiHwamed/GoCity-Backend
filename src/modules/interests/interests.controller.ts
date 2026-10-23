@@ -1,5 +1,22 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post } from '@nestjs/common';
-import { ApiBearerAuth, ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+} from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import { ResponseTitle } from '../../common/response/api-response';
 import { Roles } from '../auth/decorators';
 import { UserRole } from '../users/entities/user.entity';
@@ -17,23 +34,31 @@ export class InterestsController {
   @ApiOperation({ summary: 'List global interests' })
   @ApiOkResponse({ type: [Interest] })
   @ResponseTitle('Interests fetched')
-  findAll(): Promise<Interest[]> { return this.interests.findAll(); }
+  findAll(): Promise<Interest[]> {
+    return this.interests.findAll();
+  }
 
   @Post()
   @Roles(UserRole.ADMIN)
   @ApiCreatedResponse({ type: Interest })
   @ResponseTitle('Interest created')
-  create(@Body() dto: CreateInterestDto): Promise<Interest> { return this.interests.create(dto); }
+  create(@Body() dto: CreateInterestDto): Promise<Interest> {
+    return this.interests.create(dto);
+  }
 
   @Patch(':id')
   @Roles(UserRole.ADMIN)
   @ApiOkResponse({ type: Interest })
   @ResponseTitle('Interest updated')
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateInterestDto): Promise<Interest> { return this.interests.update(id, dto); }
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateInterestDto): Promise<Interest> {
+    return this.interests.update(id, dto);
+  }
 
   @Delete(':id')
   @Roles(UserRole.ADMIN)
   @HttpCode(HttpStatus.OK)
   @ResponseTitle('Interest deleted')
-  remove(@Param('id', ParseIntPipe) id: number): Promise<void> { return this.interests.remove(id); }
+  remove(@Param('id', ParseIntPipe) id: number): Promise<void> {
+    return this.interests.remove(id);
+  }
 }

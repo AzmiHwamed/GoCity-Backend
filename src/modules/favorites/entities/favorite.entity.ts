@@ -13,6 +13,8 @@ export enum FavoriteType {
   HOTEL = 'hotel',
   /** A city / destination from Google Places. targetId = Google placeId. */
   PLACE = 'place',
+  /** A published activity or itinerary from an organization. */
+  PROGRAM = 'program',
 }
 
 /**
@@ -20,6 +22,9 @@ export enum FavoriteType {
  * title/subtitle/imageUrl are a snapshot for display; trips and activities are refreshed when listed.
  */
 @Entity('favorites')
+// The user_id foreign key needs an index of its own. Without it MySQL borrows the unique index below,
+// and synchronize can no longer drop/rebuild that index when `type` changes (e.g. a new FavoriteType).
+@Index('IDX_favorites_user_id', ['userId'])
 @Index(['userId', 'type', 'targetId'], { unique: true })
 @Index(['type', 'targetId'])
 export class Favorite extends BaseEntity {
@@ -27,7 +32,8 @@ export class Favorite extends BaseEntity {
   userId: number;
 
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'user_id' })
+  // Named explicitly so synchronize drops the old auto-named key first, rebuilds the indexes, then re-adds it.
+  @JoinColumn({ name: 'user_id', foreignKeyConstraintName: 'FK_favorites_user_id' })
   user?: Relation<User>;
 
   @ApiProperty({ enum: FavoriteType })

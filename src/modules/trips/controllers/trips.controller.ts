@@ -65,10 +65,10 @@ export class TripsController {
   })
   @ResponseTitle('Trips fetched')
   findMine(
-    @CurrentUser('id') userId: number,
+    @CurrentUser() user: AuthUser,
     @Query() query: MyTripsQueryDto,
   ): Promise<Paginated<Trip>> {
-    return this.tripsService.findMine(userId, query);
+    return this.tripsService.findMine(user, query);
   }
 
   // ── Other people's trips (read-only). Declared before ':tripId'. ──
@@ -152,6 +152,7 @@ export class TripsController {
   ): Promise<Trip> {
     return this.tripsService.findOne(tripId, role);
   }
+
 
   @Patch(':tripId')
   @TripRole(TripMemberRole.EDITOR)

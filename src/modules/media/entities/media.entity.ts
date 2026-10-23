@@ -11,6 +11,7 @@ export enum MediaType {
   TRIP = 'trip',
   COVER = 'cover',
   DOCUMENT = 'document',
+  PROGRAM = 'program',
   OTHER = 'other',
 }
 

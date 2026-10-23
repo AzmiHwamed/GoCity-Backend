@@ -15,6 +15,7 @@ import { UserSummaryDto } from '../../users/dto/search-users.dto';
 import { Media } from '../../media/entities/media.entity';
 import { TripActivity } from '../entities/trip-activity.entity';
 import { TripMemberRole, TripVisibility } from '../trip.enums';
+import { OrganizationProgram } from '../../organizations/entities/organization-program.entity';
 import { DATE_REGEX } from '../trip.utils';
 
 // ── Visibility / share link ────────────────────────────────
@@ -193,6 +194,13 @@ export class PublicTripDto {
     description: 'Included when viewing one trip, not in lists',
   })
   activities?: TripActivity[];
+}
+
+/** Suggestions ranked for the destination of one of the caller's trips. */
+export class TripRecommendationsDto {
+  @ApiProperty({ example: 'Lisbon', nullable: true }) city: string | null;
+  @ApiProperty({ type: [OrganizationProgram] }) programs: OrganizationProgram[];
+  @ApiProperty({ type: [PublicTripDto] }) trips: PublicTripDto[];
 }
 
 /** A trip on someone's profile, with that user's role in it. */

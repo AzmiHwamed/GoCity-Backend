@@ -1,9 +1,20 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Exclude } from 'class-transformer';
-import { Column, Entity, Index, JoinColumn, JoinTable, ManyToMany, ManyToOne, Relation } from 'typeorm';
+import {
+  Column,
+  Entity,
+  Index,
+  JoinColumn,
+  JoinTable,
+  ManyToMany,
+  ManyToOne,
+  Relation,
+} from 'typeorm';
 import { BaseEntity } from '../../../common/entities/base.entity';
 import { Media } from '../../media/entities/media.entity';
 import { Interest } from '../../interests/entities/interest.entity';
+import { LegalStatusDto } from '../../legal/dto';
+import { decimalTransformer } from '../../../common/transformers/decimal.transformer';
 
 export enum UserRole {
   USER = 'user',
@@ -37,6 +48,40 @@ export class User extends BaseEntity {
   @ApiPropertyOptional({ example: 'Acme Tours', nullable: true })
   @Column({ name: 'organization_name', type: 'varchar', length: 150, nullable: true })
   organizationName: string | null;
+
+  @ApiPropertyOptional({ example: 'Medina of Tunis', nullable: true })
+  @Column({ name: 'organization_location_name', type: 'varchar', length: 255, nullable: true })
+  organizationLocationName: string | null;
+
+  @ApiPropertyOptional({ example: 36.8065, nullable: true })
+  @Column({
+    name: 'organization_latitude',
+    type: 'decimal',
+    precision: 10,
+    scale: 7,
+    nullable: true,
+    transformer: decimalTransformer,
+  })
+  organizationLatitude: number | null;
+
+  @ApiPropertyOptional({ example: 10.1815, nullable: true })
+  @Column({
+    name: 'organization_longitude',
+    type: 'decimal',
+    precision: 10,
+    scale: 7,
+    nullable: true,
+    transformer: decimalTransformer,
+  })
+  organizationLongitude: number | null;
+
+  @ApiPropertyOptional({
+    example: 'PAR',
+    nullable: true,
+    description: 'IATA city or airport code the user usually flies from (for trip flight search)',
+  })
+  @Column({ name: 'home_airport_code', type: 'varchar', length: 3, nullable: true })
+  homeAirportCode: string | null;
 
   @ApiPropertyOptional({ example: '+447911123456', nullable: true })
   @Column({ type: 'varchar', length: 30, nullable: true })
@@ -72,6 +117,27 @@ export class User extends BaseEntity {
   @ManyToOne(() => Media, { nullable: true, onDelete: 'SET NULL', eager: true })
   @JoinColumn({ name: 'avatar_id' })
   avatar?: Relation<Media> | null;
+
+  // ── Accepted terms / privacy versions (exposed only through `legal` on /me) ──
+  @Exclude()
+  @Column({ name: 'accepted_terms_version', type: 'varchar', length: 20, nullable: true })
+  acceptedTermsVersion: string | null;
+
+  @Exclude()
+  @Column({ name: 'accepted_terms_at', type: 'datetime', nullable: true })
+  acceptedTermsAt: Date | null;
+
+  @Exclude()
+  @Column({ name: 'accepted_privacy_version', type: 'varchar', length: 20, nullable: true })
+  acceptedPrivacyVersion: string | null;
+
+  @Exclude()
+  @Column({ name: 'accepted_privacy_at', type: 'datetime', nullable: true })
+  acceptedPrivacyAt: Date | null;
+
+  /** Only on /auth/me and /users/me: accepted vs current terms and privacy versions. */
+  @ApiPropertyOptional({ type: () => LegalStatusDto })
+  legal?: LegalStatusDto;
 
   /** Profile statistics, populated only for full profile responses. */
   @ApiPropertyOptional({ example: 4 }) tripCount?: number;

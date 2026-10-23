@@ -78,6 +78,23 @@ describe('MediaService', () => {
     expect(readdirSync(dir)).toHaveLength(0);
   });
 
+  it('accepts real mp4/webm clips for trip media and rejects fakes', () => {
+    const mp4 = Buffer.concat([
+      Buffer.from([0, 0, 0, 0x18]),
+      Buffer.from('ftypisom'),
+      Buffer.alloc(8),
+    ]);
+    const webm = Buffer.concat([Buffer.from([0x1a, 0x45, 0xdf, 0xa3]), Buffer.alloc(12)]);
+    expect(service.assertValidTripMedia(file(mp4, 'video/mp4'))).toBe('video/mp4');
+    expect(service.assertValidTripMedia(file(webm, 'video/webm'))).toBe('video/webm');
+    expect(() =>
+      service.assertValidTripMedia(file(Buffer.from('not a video at all'), 'video/mp4')),
+    ).toThrow(UnsupportedMediaTypeException);
+    expect(() => service.assertValidTripMedia(file(mp4, 'video/quicktime'))).toThrow(
+      UnsupportedMediaTypeException,
+    );
+  });
+
   it('removes the written file if saving the record fails', async () => {
     repo.save.mockRejectedValueOnce(new Error('db down'));
     await expect(service.upload(owner.id, file(PNG), { type: MediaType.OTHER })).rejects.toThrow(

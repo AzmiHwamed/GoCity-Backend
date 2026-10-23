@@ -16,12 +16,13 @@ import { TripMember } from '../entities/trip-member.entity';
 import { Trip } from '../entities/trip.entity';
 import { ActivityKind, IdeaStatus, TripMemberRole, VoteValue } from '../trip.enums';
 import { decideIdea } from '../trip.utils';
-import { validateActivityDetails } from './activity-validation';
+import { assertHasLocation, validateActivityDetails } from './activity-validation';
 
 @Injectable()
 export class TripIdeasService {
   constructor(
     @InjectRepository(TripIdea) private readonly ideas: Repository<TripIdea>,
+    @InjectRepository(TripActivity) private readonly activities: Repository<TripActivity>,
     @InjectRepository(IdeaVote) private readonly votes: Repository<IdeaVote>,
     @InjectRepository(TripMember) private readonly members: Repository<TripMember>,
     @InjectRepository(Trip) private readonly trips: Repository<Trip>,
@@ -42,6 +43,8 @@ export class TripIdeasService {
       status: IdeaStatus.OPEN,
     });
     validateActivityDetails(idea, trip.durationDays);
+    assertHasLocation(idea);
+    await this.assertNoScheduledConflict(tripId, idea);
     const saved = await this.ideas.save(idea);
 
     await this.votes.save(this.votes.create({ ideaId: saved.id, userId, value: VoteValue.YES }));
@@ -162,6 +165,22 @@ export class TripIdeasService {
   private async memberIds(tripId: number): Promise<Set<number>> {
     const members = await this.members.find({ where: { tripId }, select: { userId: true } });
     return new Set(members.map((m) => m.userId));
+  }
+
+  /** A suggestion cannot take a slot that is already in the confirmed itinerary. */
+  private async assertNoScheduledConflict(tripId: number, candidate: Pick<TripIdea, 'dayNumber' | 'startTime' | 'endTime'>): Promise<void> {
+    const scheduled = await this.activities.find({
+      where: { tripId, dayNumber: candidate.dayNumber },
+      order: { startTime: 'ASC' },
+    });
+    const conflict = scheduled.find((activity) =>
+      candidate.startTime < activity.endTime && candidate.endTime > activity.startTime,
+    );
+    if (conflict) {
+      throw new BadRequestException(
+        `This overlaps with “${conflict.name}” (${conflict.startTime.slice(0, 5)}–${conflict.endTime.slice(0, 5)}). Choose another time.`,
+      );
+    }
   }
 
   private withCounts(idea: TripIdea, memberIds: Set<number>, userId: number): TripIdea {

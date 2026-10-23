@@ -7,6 +7,9 @@ export interface AuthConfig {
   otpTtlSeconds: number;
   otpMaxAttempts: number;
   resetTokenTtlSeconds: number;
+  googleClientId: string;
+  facebookAppId: string;
+  facebookAppSecret: string;
 }
 
 export default registerAs('auth', (): AuthConfig => ({
@@ -16,4 +19,7 @@ export default registerAs('auth', (): AuthConfig => ({
   otpTtlSeconds: parseInt(process.env.OTP_TTL_SECONDS ?? '600', 10),
   otpMaxAttempts: parseInt(process.env.OTP_MAX_ATTEMPTS ?? '5', 10),
   resetTokenTtlSeconds: parseInt(process.env.RESET_TOKEN_TTL_SECONDS ?? '900', 10),
+  googleClientId: process.env.GOOGLE_OAUTH_CLIENT_ID ?? '',
+  facebookAppId: process.env.FACEBOOK_APP_ID ?? '',
+  facebookAppSecret: process.env.FACEBOOK_APP_SECRET ?? '',
 }));

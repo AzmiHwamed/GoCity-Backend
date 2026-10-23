@@ -36,10 +36,10 @@ export class UserProfilesController {
   })
   @ResponseTitle('My trips fetched')
   myTrips(
-    @CurrentUser('id') userId: number,
+    @CurrentUser() user: AuthUser,
     @Query() query: MyTripsQueryDto,
   ): Promise<Paginated<Trip>> {
-    return this.tripsService.findMine(userId, query);
+    return this.tripsService.findMine(user, query);
   }
 
   @Get(':id(\\d+)')

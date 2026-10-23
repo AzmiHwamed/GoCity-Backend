@@ -7,6 +7,11 @@ export const envValidationSchema = Joi.object({
   CORS_ORIGIN: Joi.string().default('*'),
   APP_URL: Joi.string().uri().default('http://localhost:3000'),
   GOOGLE_PLACES_API_KEY: Joi.string().allow('').optional(),
+  TRAVELPAYOUTS_TOKEN: Joi.string().allow('').optional(),
+  TRAVELPAYOUTS_MARKER: Joi.string().allow('').optional(),
+  AIRALO_CLIENT_ID: Joi.string().allow('').optional(),
+  AIRALO_CLIENT_SECRET: Joi.string().allow('').optional(),
+  AIRALO_API_URL: Joi.string().uri().allow('').optional(),
   // Optional Firebase Admin service-account JSON. Leave blank to keep FCM disabled.
   FIREBASE_SERVICE_ACCOUNT_JSON: Joi.string().allow('').optional(),
 
@@ -25,6 +30,9 @@ export const envValidationSchema = Joi.object({
   OTP_TTL_SECONDS: Joi.number().integer().min(60).default(600),
   OTP_MAX_ATTEMPTS: Joi.number().integer().min(1).default(5),
   RESET_TOKEN_TTL_SECONDS: Joi.number().integer().min(60).default(900),
+  GOOGLE_OAUTH_CLIENT_ID: Joi.string().allow('').optional(),
+  FACEBOOK_APP_ID: Joi.string().allow('').optional(),
+  FACEBOOK_APP_SECRET: Joi.string().allow('').optional(),
 
   SMTP_HOST: Joi.string().allow('').optional(),
   SMTP_PORT: Joi.number().port().default(587),

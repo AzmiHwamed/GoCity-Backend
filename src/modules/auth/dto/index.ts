@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional, OmitType } from '@nestjs/swagger';
 import {
+  IsBoolean,
   IsEmail,
   IsHexadecimal,
   IsNotEmpty,
@@ -14,7 +15,25 @@ import { CreateUserDto } from '../../users/dto/create-user.dto';
 import { User } from '../../users/entities/user.entity';
 
 /** Public registration creates standard user accounts only. Admins create organizations. */
-export class RegisterDto extends OmitType(CreateUserDto, ['role', 'organizationName'] as const) {}
+export class RegisterDto extends OmitType(CreateUserDto, ['role', 'organizationName'] as const) {
+  @ApiPropertyOptional({
+    example: true,
+    description:
+      'The user ticked "I agree to the Terms of Use and Privacy Policy". Records the current ' +
+      'versions. Optional so older clients keep working; they are asked to accept after login.',
+  })
+  @IsOptional()
+  @IsBoolean()
+  acceptTerms?: boolean;
+}
+
+/** Public registration payload for a business that publishes reusable programs. */
+export class OrganizationRegisterDto extends OmitType(CreateUserDto, ['role'] as const) {
+  @ApiPropertyOptional({ example: true })
+  @IsOptional()
+  @IsBoolean()
+  acceptTerms?: boolean;
+}
 
 export class LoginDto {
   @ApiProperty({ example: 'jane@example.com' })
@@ -26,6 +45,39 @@ export class LoginDto {
   @IsString()
   @IsNotEmpty()
   password: string;
+}
+
+export class SocialLoginDto {
+  @ApiProperty({ enum: ['google', 'facebook'] })
+  @IsString()
+  @Matches(/^(google|facebook)$/)
+  provider: 'google' | 'facebook';
+
+  @ApiPropertyOptional({ description: 'Firebase ID token returned after provider sign-in' })
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  firebaseIdToken?: string;
+
+  @ApiPropertyOptional({ description: 'Google ID token from Google Identity Services' })
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  googleIdToken?: string;
+
+  @ApiPropertyOptional({ description: 'Facebook access token from Facebook Login' })
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  facebookAccessToken?: string;
+
+  @ApiPropertyOptional({
+    example: true,
+    description: 'Required only when this social identity creates a new GoCity account',
+  })
+  @IsOptional()
+  @IsBoolean()
+  acceptTerms?: boolean;
 }
 
 export class ForgotPasswordDto {

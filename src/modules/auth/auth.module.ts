@@ -7,6 +7,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthConfig } from '../../config/auth.config';
 import { MailModule } from '../mail/mail.module';
 import { UsersModule } from '../users/users.module';
+import { LegalModule } from '../legal/legal.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { RefreshToken } from './entities/refresh-token.entity';
@@ -17,6 +18,7 @@ import { TokensService } from './tokens.service';
   imports: [
     TypeOrmModule.forFeature([RefreshToken]),
     UsersModule,
+    LegalModule,
     MailModule,
     PassportModule,
     // In-memory store: OTPs and reset tokens are lost on restart and not shared between

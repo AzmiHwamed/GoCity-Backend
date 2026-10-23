@@ -87,6 +87,7 @@ export class FavoriteCountsDto {
   @ApiProperty() activity: number;
   @ApiProperty() hotel: number;
   @ApiProperty() place: number;
+  @ApiProperty() program: number;
 }
 
 export class FavoriteViewDto {

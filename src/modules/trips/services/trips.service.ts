@@ -28,6 +28,7 @@ import {
   MyTripsQueryDto,
   ProfileTripDto,
   PublicTripDto,
+  TripRecommendationsDto,
   ShareInfoDto,
   TRIP_WHEN,
   UserProfileDto,
@@ -42,6 +43,7 @@ import { TripExpense } from '../entities/trip-expense.entity';
 import { TripMember } from '../entities/trip-member.entity';
 import { TripTip } from '../entities/trip-tip.entity';
 import { Trip } from '../entities/trip.entity';
+import { OrganizationProgram } from '../../organizations/entities/organization-program.entity';
 import { IdeaStatus, TripMemberRole, TripVisibility } from '../trip.enums';
 import { addDays, assertValidDateRange, generateInviteCode, roundMoney } from '../trip.utils';
 import { assertCoordinatePair } from './activity-validation';
@@ -80,6 +82,8 @@ export class TripsService {
     private readonly places: PlacesService,
     @InjectRepository(TripExpense) private readonly tripExpenses: Repository<TripExpense>,
     @InjectRepository(Favorite) private readonly favorites: Repository<Favorite>,
+    @InjectRepository(OrganizationProgram)
+    private readonly programs: Repository<OrganizationProgram>,
     private readonly mediaService: MediaService,
     private readonly usersService: UsersService,
     private readonly access: TripAccessService,
@@ -94,6 +98,11 @@ export class TripsService {
   async create(userId: number, dto: CreateTripDto): Promise<Trip> {
     assertValidDateRange(dto.startDate, dto.endDate);
     assertCoordinatePair(dto.hotelLatitude, dto.hotelLongitude, 'hotel');
+    if (!dto.cityPlaceId) {
+      throw new BadRequestException(
+        'Pick the destination city from the search (cityPlaceId) so the trip has coordinates',
+      );
+    }
     const city = await this.resolveCity(dto);
     const inviteCode = await this.uniqueCode('inviteCode');
 
@@ -114,10 +123,13 @@ export class TripsService {
   }
 
   /** Trips I own or am a member of, with my role. Filter by role and upcoming/past. */
-  async findMine(userId: number, query: MyTripsQueryDto): Promise<Paginated<Trip>> {
+  async findMine(
+    user: AuthUser,
+    query: MyTripsQueryDto,
+  ): Promise<Paginated<Trip> & { recommendations: TripRecommendationsDto | null }> {
     const [memberships, total] = await this.members.findAndCount({
       where: {
-        userId,
+        userId: user.id,
         ...(query.role ? { role: query.role } : {}),
         ...(query.when ? { trip: whenFilter(query.when) } : {}),
       },
@@ -131,7 +143,16 @@ export class TripsService {
       .map((m) => Object.assign(m.trip as Trip, { myRole: m.role }));
     await this.attachStats(trips);
     await this.attachShareDetails(trips, false);
-    return new Paginated(trips, total, query.page, query.limit);
+    const response = new Paginated(trips, total, query.page, query.limit) as Paginated<Trip> & {
+      recommendations: TripRecommendationsDto | null;
+    };
+    // "Current" means the next trip that has not ended; otherwise use the most recently updated plan.
+    const today = new Date().toISOString().slice(0, 10);
+    const current =
+      [...trips].filter((item) => item.endDate >= today).sort((a, b) => a.startDate.localeCompare(b.startDate))[0] ??
+      [...trips].sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())[0];
+    response.recommendations = current ? await this.recommendationsForTrip(current, user) : null;
+    return response;
   }
 
   async findOne(tripId: number, myRole?: TripMemberRole): Promise<Trip> {
@@ -141,6 +162,60 @@ export class TripsService {
     await this.attachStats([trip]);
     await this.attachShareDetails([trip], true);
     return trip;
+  }
+
+  /** Destination-first suggestions for a trip currently being planned. */
+  private async recommendationsForTrip(trip: Trip, viewer: AuthUser): Promise<TripRecommendationsDto> {
+    const [programs, publicTrips] = await Promise.all([
+      this.programs.find({ where: { isPublished: true }, relations: { organization: true }, take: 100 }),
+      this.trips.find({
+        where: { visibility: TripVisibility.PUBLIC },
+        relations: { owner: true },
+        take: 100,
+      }),
+    ]);
+    const normalizedTripCity = this.normalizePlaceName(trip.city);
+    const score = (city: string | null, latitude: number | null, longitude: number | null) => {
+      const sameCity = normalizedTripCity !== '' && normalizedTripCity === this.normalizePlaceName(city);
+      const distance = this.distanceKm(
+        trip.cityLatitude,
+        trip.cityLongitude,
+        latitude,
+        longitude,
+      );
+      // Exact city matches come before nearby results; unknown locations stay at the end.
+      return (sameCity ? 0 : 1_000_000) + (distance ?? 100_000);
+    };
+    const recommendedPrograms = programs
+      .map((program) => ({
+        program,
+        score: score(
+          program.destination,
+          program.organization?.organizationLatitude ?? null,
+          program.organization?.organizationLongitude ?? null,
+        ),
+      }))
+      .sort((a, b) => a.score - b.score || b.program.useCount - a.program.useCount)
+      .slice(0, 12)
+      .map(({ program }) => program);
+    const nearbyTrips = publicTrips
+      .filter((candidate) => candidate.id !== trip.id)
+      .map((candidate) => ({
+        candidate,
+        score: score(candidate.city, candidate.cityLatitude, candidate.cityLongitude),
+      }))
+      .sort(
+        (a, b) =>
+          a.score - b.score || b.candidate.createdAt.getTime() - a.candidate.createdAt.getTime(),
+      )
+      .slice(0, 12)
+      .map(({ candidate }) => candidate);
+
+    return {
+      city: trip.city,
+      programs: recommendedPrograms,
+      trips: await this.toPublicViews(nearbyTrips, viewer),
+    };
   }
 
   /**
@@ -185,6 +260,10 @@ export class TripsService {
     const trip = await this.getTrip(tripId);
     for (const key of REQUIRED_FIELDS) {
       if (dto[key] === null) throw new BadRequestException(`${key} cannot be empty`);
+    }
+    // Changing the city needs a picked city (cityPlaceId), so it keeps its coordinates.
+    if ((dto.city !== undefined || dto.cityPlaceId !== undefined) && !dto.cityPlaceId) {
+      throw new BadRequestException('Pick the destination city from the search (cityPlaceId)');
     }
     Object.assign(trip, dto, await this.resolveCity(dto));
     assertValidDateRange(trip.startDate, trip.endDate);
@@ -631,5 +710,30 @@ export class TripsService {
         trip.totalExpenses / Math.max(trip.travelersCount ?? 1, 1),
       );
     }
+  }
+
+  private normalizePlaceName(value: string | null): string {
+    return (value ?? '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim()
+      .toLowerCase();
+  }
+
+  /** Great-circle distance; null when either location is unavailable. */
+  private distanceKm(
+    fromLat: number | null,
+    fromLng: number | null,
+    toLat: number | null,
+    toLng: number | null,
+  ): number | null {
+    if ([fromLat, fromLng, toLat, toLng].some((value) => value == null)) return null;
+    const radians = (degrees: number) => (degrees * Math.PI) / 180;
+    const a =
+      Math.sin(radians((toLat! - fromLat!) / 2)) ** 2 +
+      Math.cos(radians(fromLat!)) *
+        Math.cos(radians(toLat!)) *
+        Math.sin(radians((toLng! - fromLng!) / 2)) ** 2;
+    return 2 * 6371 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   }
 }
