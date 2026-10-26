@@ -9,6 +9,7 @@ import * as bcrypt from 'bcryptjs';
 import { Brackets, In, IsNull, Repository } from 'typeorm';
 import { RefreshToken } from '../auth/entities/refresh-token.entity';
 import { Paginated } from '../../common/dto/paginated-response.dto';
+import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 import { MediaService } from '../media/media.service';
 import { Favorite } from '../favorites/entities/favorite.entity';
 import { Trip } from '../trips/entities/trip.entity';
@@ -89,6 +90,37 @@ export class UsersService {
       .getManyAndCount();
 
     return new Paginated(items, total, page, limit);
+  }
+
+  /** Compact metrics for the role-protected admin dashboard. */
+  async adminOverview(): Promise<{
+    users: number;
+    travellers: number;
+    agencies: number;
+    admins: number;
+    trips: number;
+    publicTrips: number;
+  }> {
+    const [users, travellers, agencies, admins, trips, publicTrips] = await Promise.all([
+      this.usersRepository.count(),
+      this.usersRepository.count({ where: { role: UserRole.USER } }),
+      this.usersRepository.count({ where: { role: UserRole.ORGANIZATION } }),
+      this.usersRepository.count({ where: { role: UserRole.ADMIN } }),
+      this.trips.count(),
+      this.trips.count({ where: { visibility: TripVisibility.PUBLIC } }),
+    ]);
+    return { users, travellers, agencies, admins, trips, publicTrips };
+  }
+
+  /** All trips, including private ones, for platform administration only. */
+  async adminTrips(query: PaginationQueryDto): Promise<Paginated<Trip>> {
+    const [items, total] = await this.trips.findAndCount({
+      relations: { owner: true },
+      order: { createdAt: 'DESC' },
+      skip: query.skip,
+      take: query.limit,
+    });
+    return new Paginated(items, total, query.page, query.limit);
   }
 
   /**

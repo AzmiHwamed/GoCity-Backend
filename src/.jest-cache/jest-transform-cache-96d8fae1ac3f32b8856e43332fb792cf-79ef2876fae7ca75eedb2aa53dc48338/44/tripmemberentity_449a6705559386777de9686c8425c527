@@ -1,0 +1,53 @@
+16307c6546d96e88026d8a44e31f8561
+"use strict";
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.TripMember = void 0;
+const swagger_1 = require("@nestjs/swagger");
+const typeorm_1 = require("typeorm");
+const base_entity_1 = require("../../../common/entities/base.entity");
+const user_entity_1 = require("../../users/entities/user.entity");
+const trip_enums_1 = require("../trip.enums");
+const trip_entity_1 = require("./trip.entity");
+let TripMember = class TripMember extends base_entity_1.BaseEntity {
+};
+exports.TripMember = TripMember;
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: 1 }),
+    (0, typeorm_1.Column)({ name: 'trip_id' }),
+    __metadata("design:type", Number)
+], TripMember.prototype, "tripId", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => trip_entity_1.Trip, (trip) => trip.members, { onDelete: 'CASCADE' }),
+    (0, typeorm_1.JoinColumn)({ name: 'trip_id' }),
+    __metadata("design:type", Object)
+], TripMember.prototype, "trip", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: 2 }),
+    (0, typeorm_1.Column)({ name: 'user_id' }),
+    __metadata("design:type", Number)
+], TripMember.prototype, "userId", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ type: () => user_entity_1.User }),
+    (0, typeorm_1.ManyToOne)(() => user_entity_1.User, { onDelete: 'CASCADE' }),
+    (0, typeorm_1.JoinColumn)({ name: 'user_id' }),
+    __metadata("design:type", Object)
+], TripMember.prototype, "user", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ enum: trip_enums_1.TripMemberRole, example: trip_enums_1.TripMemberRole.EDITOR }),
+    (0, typeorm_1.Column)({ type: 'enum', enum: trip_enums_1.TripMemberRole, default: trip_enums_1.TripMemberRole.VIEWER }),
+    __metadata("design:type", String)
+], TripMember.prototype, "role", void 0);
+exports.TripMember = TripMember = __decorate([
+    (0, typeorm_1.Entity)('trip_members'),
+    (0, typeorm_1.Index)(['tripId', 'userId'], { unique: true })
+], TripMember);
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJmaWxlIjoiQzpcXFVzZXJzXFxha2loaVxcRG9jdW1lbnRzXFxuZXN0anMtYmFja2VuZFxcc3JjXFxtb2R1bGVzXFx0cmlwc1xcZW50aXRpZXNcXHRyaXAtbWVtYmVyLmVudGl0eS50cyIsIm1hcHBpbmdzIjoiOzs7Ozs7Ozs7Ozs7QUFBQSw2Q0FBbUU7QUFDbkUscUNBQWlGO0FBQ2pGLHNFQUFrRTtBQUNsRSxrRUFBd0Q7QUFDeEQsOENBQStDO0FBQy9DLCtDQUFxQztBQUk5QixJQUFNLFVBQVUsR0FBaEIsTUFBTSxVQUFXLFNBQVEsd0JBQVU7Q0FxQnpDLENBQUE7QUFyQlksZ0NBQVU7QUFHckI7SUFGQyxJQUFBLHFCQUFXLEVBQUMsRUFBRSxPQUFPLEVBQUUsQ0FBQyxFQUFFLENBQUM7SUFDM0IsSUFBQSxnQkFBTSxFQUFDLEVBQUUsSUFBSSxFQUFFLFNBQVMsRUFBRSxDQUFDOzswQ0FDYjtBQUlmO0lBRkMsSUFBQSxtQkFBUyxFQUFDLEdBQUcsRUFBRSxDQUFDLGtCQUFJLEVBQUUsQ0FBQyxJQUFJLEVBQUUsRUFBRSxDQUFDLElBQUksQ0FBQyxPQUFPLEVBQUUsRUFBRSxRQUFRLEVBQUUsU0FBUyxFQUFFLENBQUM7SUFDdEUsSUFBQSxvQkFBVSxFQUFDLEVBQUUsSUFBSSxFQUFFLFNBQVMsRUFBRSxDQUFDOzt3Q0FDVjtBQUl0QjtJQUZDLElBQUEscUJBQVcsRUFBQyxFQUFFLE9BQU8sRUFBRSxDQUFDLEVBQUUsQ0FBQztJQUMzQixJQUFBLGdCQUFNLEVBQUMsRUFBRSxJQUFJLEVBQUUsU0FBUyxFQUFFLENBQUM7OzBDQUNiO0FBS2Y7SUFIQyxJQUFBLDZCQUFtQixFQUFDLEVBQUUsSUFBSSxFQUFFLEdBQUcsRUFBRSxDQUFDLGtCQUFJLEVBQUUsQ0FBQztJQUN6QyxJQUFBLG1CQUFTLEVBQUMsR0FBRyxFQUFFLENBQUMsa0JBQUksRUFBRSxFQUFFLFFBQVEsRUFBRSxTQUFTLEVBQUUsQ0FBQztJQUM5QyxJQUFBLG9CQUFVLEVBQUMsRUFBRSxJQUFJLEVBQUUsU0FBUyxFQUFFLENBQUM7O3dDQUNWO0FBSXRCO0lBRkMsSUFBQSxxQkFBVyxFQUFDLEVBQUUsSUFBSSxFQUFFLDJCQUFjLEVBQUUsT0FBTyxFQUFFLDJCQUFjLENBQUMsTUFBTSxFQUFFLENBQUM7SUFDckUsSUFBQSxnQkFBTSxFQUFDLEVBQUUsSUFBSSxFQUFFLE1BQU0sRUFBRSxJQUFJLEVBQUUsMkJBQWMsRUFBRSxPQUFPLEVBQUUsMkJBQWMsQ0FBQyxNQUFNLEVBQUUsQ0FBQzs7d0NBQzFEO3FCQXBCVixVQUFVO0lBRnRCLElBQUEsZ0JBQU0sRUFBQyxjQUFjLENBQUM7SUFDdEIsSUFBQSxlQUFLLEVBQUMsQ0FBQyxRQUFRLEVBQUUsUUFBUSxDQUFDLEVBQUUsRUFBRSxNQUFNLEVBQUUsSUFBSSxFQUFFLENBQUM7R0FDakMsVUFBVSxDQXFCdEIiLCJuYW1lcyI6W10sInNvdXJjZXMiOlsiQzpcXFVzZXJzXFxha2loaVxcRG9jdW1lbnRzXFxuZXN0anMtYmFja2VuZFxcc3JjXFxtb2R1bGVzXFx0cmlwc1xcZW50aXRpZXNcXHRyaXAtbWVtYmVyLmVudGl0eS50cyJdLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgeyBBcGlQcm9wZXJ0eSwgQXBpUHJvcGVydHlPcHRpb25hbCB9IGZyb20gJ0BuZXN0anMvc3dhZ2dlcic7XG5pbXBvcnQgeyBDb2x1bW4sIEVudGl0eSwgSW5kZXgsIEpvaW5Db2x1bW4sIE1hbnlUb09uZSwgUmVsYXRpb24gfSBmcm9tICd0eXBlb3JtJztcbmltcG9ydCB7IEJhc2VFbnRpdHkgfSBmcm9tICcuLi8uLi8uLi9jb21tb24vZW50aXRpZXMvYmFzZS5lbnRpdHknO1xuaW1wb3J0IHsgVXNlciB9IGZyb20gJy4uLy4uL3VzZXJzL2VudGl0aWVzL3VzZXIuZW50aXR5JztcbmltcG9ydCB7IFRyaXBNZW1iZXJSb2xlIH0gZnJvbSAnLi4vdHJpcC5lbnVtcyc7XG5pbXBvcnQgeyBUcmlwIH0gZnJvbSAnLi90cmlwLmVudGl0eSc7XG5cbkBFbnRpdHkoJ3RyaXBfbWVtYmVycycpXG5ASW5kZXgoWyd0cmlwSWQnLCAndXNlcklkJ10sIHsgdW5pcXVlOiB0cnVlIH0pXG5leHBvcnQgY2xhc3MgVHJpcE1lbWJlciBleHRlbmRzIEJhc2VFbnRpdHkge1xuICBAQXBpUHJvcGVydHkoeyBleGFtcGxlOiAxIH0pXG4gIEBDb2x1bW4oeyBuYW1lOiAndHJpcF9pZCcgfSlcbiAgdHJpcElkOiBudW1iZXI7XG5cbiAgQE1hbnlUb09uZSgoKSA9PiBUcmlwLCAodHJpcCkgPT4gdHJpcC5tZW1iZXJzLCB7IG9uRGVsZXRlOiAnQ0FTQ0FERScgfSlcbiAgQEpvaW5Db2x1bW4oeyBuYW1lOiAndHJpcF9pZCcgfSlcbiAgdHJpcD86IFJlbGF0aW9uPFRyaXA+O1xuXG4gIEBBcGlQcm9wZXJ0eSh7IGV4YW1wbGU6IDIgfSlcbiAgQENvbHVtbih7IG5hbWU6ICd1c2VyX2lkJyB9KVxuICB1c2VySWQ6IG51bWJlcjtcblxuICBAQXBpUHJvcGVydHlPcHRpb25hbCh7IHR5cGU6ICgpID0+IFVzZXIgfSlcbiAgQE1hbnlUb09uZSgoKSA9PiBVc2VyLCB7IG9uRGVsZXRlOiAnQ0FTQ0FERScgfSlcbiAgQEpvaW5Db2x1bW4oeyBuYW1lOiAndXNlcl9pZCcgfSlcbiAgdXNlcj86IFJlbGF0aW9uPFVzZXI+O1xuXG4gIEBBcGlQcm9wZXJ0eSh7IGVudW06IFRyaXBNZW1iZXJSb2xlLCBleGFtcGxlOiBUcmlwTWVtYmVyUm9sZS5FRElUT1IgfSlcbiAgQENvbHVtbih7IHR5cGU6ICdlbnVtJywgZW51bTogVHJpcE1lbWJlclJvbGUsIGRlZmF1bHQ6IFRyaXBNZW1iZXJSb2xlLlZJRVdFUiB9KVxuICByb2xlOiBUcmlwTWVtYmVyUm9sZTtcbn1cbiJdLCJ2ZXJzaW9uIjozfQ==

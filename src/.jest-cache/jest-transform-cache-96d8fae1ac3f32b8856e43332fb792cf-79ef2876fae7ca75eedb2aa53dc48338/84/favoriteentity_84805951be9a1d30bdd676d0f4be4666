@@ -1,0 +1,85 @@
+809b3370ae4b051bd6111945c1b278bb
+"use strict";
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Favorite = exports.FavoriteType = void 0;
+const swagger_1 = require("@nestjs/swagger");
+const typeorm_1 = require("typeorm");
+const base_entity_1 = require("../../../common/entities/base.entity");
+const user_entity_1 = require("../../users/entities/user.entity");
+/** What can be saved as a favorite. */
+var FavoriteType;
+(function (FavoriteType) {
+    /** A trip shared by someone (or one of your own). targetId = trip id. */
+    FavoriteType["TRIP"] = "trip";
+    /** One activity/plan of a trip you can see. targetId = activity id. */
+    FavoriteType["ACTIVITY"] = "activity";
+    /** A hotel from Google Places. targetId = Google placeId. */
+    FavoriteType["HOTEL"] = "hotel";
+    /** A city / destination from Google Places. targetId = Google placeId. */
+    FavoriteType["PLACE"] = "place";
+    /** A published activity or itinerary from an organization. */
+    FavoriteType["PROGRAM"] = "program";
+})(FavoriteType || (exports.FavoriteType = FavoriteType = {}));
+/**
+ * One saved item. `targetId` is a string so it can hold our numeric ids and Google placeIds.
+ * title/subtitle/imageUrl are a snapshot for display; trips and activities are refreshed when listed.
+ */
+let Favorite = class Favorite extends base_entity_1.BaseEntity {
+};
+exports.Favorite = Favorite;
+__decorate([
+    (0, typeorm_1.Column)({ name: 'user_id' }),
+    __metadata("design:type", Number)
+], Favorite.prototype, "userId", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => user_entity_1.User, { onDelete: 'CASCADE' })
+    // Named explicitly so synchronize drops the old auto-named key first, rebuilds the indexes, then re-adds it.
+    ,
+    (0, typeorm_1.JoinColumn)({ name: 'user_id', foreignKeyConstraintName: 'FK_favorites_user_id' }),
+    __metadata("design:type", Object)
+], Favorite.prototype, "user", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ enum: FavoriteType }),
+    (0, typeorm_1.Column)({ type: 'enum', enum: FavoriteType }),
+    __metadata("design:type", String)
+], Favorite.prototype, "type", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: '12', description: 'Trip/activity id, or Google placeId' }),
+    (0, typeorm_1.Column)({ name: 'target_id', length: 255 }),
+    __metadata("design:type", String)
+], Favorite.prototype, "targetId", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: 'Lisbon weekend' }),
+    (0, typeorm_1.Column)({ length: 200 }),
+    __metadata("design:type", String)
+], Favorite.prototype, "title", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ nullable: true, example: 'Lisbon, Portugal · 3 days' }),
+    (0, typeorm_1.Column)({ type: 'varchar', length: 300, nullable: true }),
+    __metadata("design:type", Object)
+], Favorite.prototype, "subtitle", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ nullable: true }),
+    (0, typeorm_1.Column)({ name: 'image_url', type: 'text', nullable: true }) // Google photo urls can pass 500 chars
+    ,
+    __metadata("design:type", Object)
+], Favorite.prototype, "imageUrl", void 0);
+exports.Favorite = Favorite = __decorate([
+    (0, typeorm_1.Entity)('favorites')
+    // The user_id foreign key needs an index of its own. Without it MySQL borrows the unique index below,
+    // and synchronize can no longer drop/rebuild that index when `type` changes (e.g. a new FavoriteType).
+    ,
+    (0, typeorm_1.Index)('IDX_favorites_user_id', ['userId']),
+    (0, typeorm_1.Index)(['userId', 'type', 'targetId'], { unique: true }),
+    (0, typeorm_1.Index)(['type', 'targetId'])
+], Favorite);
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJmaWxlIjoiQzpcXFVzZXJzXFxha2loaVxcRG9jdW1lbnRzXFxuZXN0anMtYmFja2VuZFxcc3JjXFxtb2R1bGVzXFxmYXZvcml0ZXNcXGVudGl0aWVzXFxmYXZvcml0ZS5lbnRpdHkudHMiLCJtYXBwaW5ncyI6Ijs7Ozs7Ozs7Ozs7O0FBQUEsNkNBQW1FO0FBQ25FLHFDQUFpRjtBQUNqRixzRUFBa0U7QUFDbEUsa0VBQXdEO0FBRXhELHVDQUF1QztBQUN2QyxJQUFZLFlBV1g7QUFYRCxXQUFZLFlBQVk7SUFDdEIseUVBQXlFO0lBQ3pFLDZCQUFhLENBQUE7SUFDYix1RUFBdUU7SUFDdkUscUNBQXFCLENBQUE7SUFDckIsNkRBQTZEO0lBQzdELCtCQUFlLENBQUE7SUFDZiwwRUFBMEU7SUFDMUUsK0JBQWUsQ0FBQTtJQUNmLDhEQUE4RDtJQUM5RCxtQ0FBbUIsQ0FBQTtBQUNyQixDQUFDLEVBWFcsWUFBWSw0QkFBWixZQUFZLFFBV3ZCO0FBRUQ7OztHQUdHO0FBT0ksSUFBTSxRQUFRLEdBQWQsTUFBTSxRQUFTLFNBQVEsd0JBQVU7Q0E0QnZDLENBQUE7QUE1QlksNEJBQVE7QUFFbkI7SUFEQyxJQUFBLGdCQUFNLEVBQUMsRUFBRSxJQUFJLEVBQUUsU0FBUyxFQUFFLENBQUM7O3dDQUNiO0FBS2Y7SUFIQyxJQUFBLG1CQUFTLEVBQUMsR0FBRyxFQUFFLENBQUMsa0JBQUksRUFBRSxFQUFFLFFBQVEsRUFBRSxTQUFTLEVBQUUsQ0FBQztJQUMvQyw2R0FBNkc7O0lBQzVHLElBQUEsb0JBQVUsRUFBQyxFQUFFLElBQUksRUFBRSxTQUFTLEVBQUUsd0JBQXdCLEVBQUUsc0JBQXNCLEVBQUUsQ0FBQzs7c0NBQzVEO0FBSXRCO0lBRkMsSUFBQSxxQkFBVyxFQUFDLEVBQUUsSUFBSSxFQUFFLFlBQVksRUFBRSxDQUFDO0lBQ25DLElBQUEsZ0JBQU0sRUFBQyxFQUFFLElBQUksRUFBRSxNQUFNLEVBQUUsSUFBSSxFQUFFLFlBQVksRUFBRSxDQUFDOztzQ0FDMUI7QUFJbkI7SUFGQyxJQUFBLHFCQUFXLEVBQUMsRUFBRSxPQUFPLEVBQUUsSUFBSSxFQUFFLFdBQVcsRUFBRSxxQ0FBcUMsRUFBRSxDQUFDO0lBQ2xGLElBQUEsZ0JBQU0sRUFBQyxFQUFFLElBQUksRUFBRSxXQUFXLEVBQUUsTUFBTSxFQUFFLEdBQUcsRUFBRSxDQUFDOzswQ0FDMUI7QUFJakI7SUFGQyxJQUFBLHFCQUFXLEVBQUMsRUFBRSxPQUFPLEVBQUUsZ0JBQWdCLEVBQUUsQ0FBQztJQUMxQyxJQUFBLGdCQUFNLEVBQUMsRUFBRSxNQUFNLEVBQUUsR0FBRyxFQUFFLENBQUM7O3VDQUNWO0FBSWQ7SUFGQyxJQUFBLDZCQUFtQixFQUFDLEVBQUUsUUFBUSxFQUFFLElBQUksRUFBRSxPQUFPLEVBQUUsMkJBQTJCLEVBQUUsQ0FBQztJQUM3RSxJQUFBLGdCQUFNLEVBQUMsRUFBRSxJQUFJLEVBQUUsU0FBUyxFQUFFLE1BQU0sRUFBRSxHQUFHLEVBQUUsUUFBUSxFQUFFLElBQUksRUFBRSxDQUFDOzswQ0FDakM7QUFJeEI7SUFGQyxJQUFBLDZCQUFtQixFQUFDLEVBQUUsUUFBUSxFQUFFLElBQUksRUFBRSxDQUFDO0lBQ3ZDLElBQUEsZ0JBQU0sRUFBQyxFQUFFLElBQUksRUFBRSxXQUFXLEVBQUUsSUFBSSxFQUFFLE1BQU0sRUFBRSxRQUFRLEVBQUUsSUFBSSxFQUFFLENBQUMsQ0FBQyx1Q0FBdUM7OzswQ0FDNUU7bUJBM0JiLFFBQVE7SUFOcEIsSUFBQSxnQkFBTSxFQUFDLFdBQVcsQ0FBQztJQUNwQixzR0FBc0c7SUFDdEcsdUdBQXVHOztJQUN0RyxJQUFBLGVBQUssRUFBQyx1QkFBdUIsRUFBRSxDQUFDLFFBQVEsQ0FBQyxDQUFDO0lBQzFDLElBQUEsZUFBSyxFQUFDLENBQUMsUUFBUSxFQUFFLE1BQU0sRUFBRSxVQUFVLENBQUMsRUFBRSxFQUFFLE1BQU0sRUFBRSxJQUFJLEVBQUUsQ0FBQztJQUN2RCxJQUFBLGVBQUssRUFBQyxDQUFDLE1BQU0sRUFBRSxVQUFVLENBQUMsQ0FBQztHQUNmLFFBQVEsQ0E0QnBCIiwibmFtZXMiOltdLCJzb3VyY2VzIjpbIkM6XFxVc2Vyc1xcYWtpaGlcXERvY3VtZW50c1xcbmVzdGpzLWJhY2tlbmRcXHNyY1xcbW9kdWxlc1xcZmF2b3JpdGVzXFxlbnRpdGllc1xcZmF2b3JpdGUuZW50aXR5LnRzIl0sInNvdXJjZXNDb250ZW50IjpbImltcG9ydCB7IEFwaVByb3BlcnR5LCBBcGlQcm9wZXJ0eU9wdGlvbmFsIH0gZnJvbSAnQG5lc3Rqcy9zd2FnZ2VyJztcbmltcG9ydCB7IENvbHVtbiwgRW50aXR5LCBJbmRleCwgSm9pbkNvbHVtbiwgTWFueVRvT25lLCBSZWxhdGlvbiB9IGZyb20gJ3R5cGVvcm0nO1xuaW1wb3J0IHsgQmFzZUVudGl0eSB9IGZyb20gJy4uLy4uLy4uL2NvbW1vbi9lbnRpdGllcy9iYXNlLmVudGl0eSc7XG5pbXBvcnQgeyBVc2VyIH0gZnJvbSAnLi4vLi4vdXNlcnMvZW50aXRpZXMvdXNlci5lbnRpdHknO1xuXG4vKiogV2hhdCBjYW4gYmUgc2F2ZWQgYXMgYSBmYXZvcml0ZS4gKi9cbmV4cG9ydCBlbnVtIEZhdm9yaXRlVHlwZSB7XG4gIC8qKiBBIHRyaXAgc2hhcmVkIGJ5IHNvbWVvbmUgKG9yIG9uZSBvZiB5b3VyIG93bikuIHRhcmdldElkID0gdHJpcCBpZC4gKi9cbiAgVFJJUCA9ICd0cmlwJyxcbiAgLyoqIE9uZSBhY3Rpdml0eS9wbGFuIG9mIGEgdHJpcCB5b3UgY2FuIHNlZS4gdGFyZ2V0SWQgPSBhY3Rpdml0eSBpZC4gKi9cbiAgQUNUSVZJVFkgPSAnYWN0aXZpdHknLFxuICAvKiogQSBob3RlbCBmcm9tIEdvb2dsZSBQbGFjZXMuIHRhcmdldElkID0gR29vZ2xlIHBsYWNlSWQuICovXG4gIEhPVEVMID0gJ2hvdGVsJyxcbiAgLyoqIEEgY2l0eSAvIGRlc3RpbmF0aW9uIGZyb20gR29vZ2xlIFBsYWNlcy4gdGFyZ2V0SWQgPSBHb29nbGUgcGxhY2VJZC4gKi9cbiAgUExBQ0UgPSAncGxhY2UnLFxuICAvKiogQSBwdWJsaXNoZWQgYWN0aXZpdHkgb3IgaXRpbmVyYXJ5IGZyb20gYW4gb3JnYW5pemF0aW9uLiAqL1xuICBQUk9HUkFNID0gJ3Byb2dyYW0nLFxufVxuXG4vKipcbiAqIE9uZSBzYXZlZCBpdGVtLiBgdGFyZ2V0SWRgIGlzIGEgc3RyaW5nIHNvIGl0IGNhbiBob2xkIG91ciBudW1lcmljIGlkcyBhbmQgR29vZ2xlIHBsYWNlSWRzLlxuICogdGl0bGUvc3VidGl0bGUvaW1hZ2VVcmwgYXJlIGEgc25hcHNob3QgZm9yIGRpc3BsYXk7IHRyaXBzIGFuZCBhY3Rpdml0aWVzIGFyZSByZWZyZXNoZWQgd2hlbiBsaXN0ZWQuXG4gKi9cbkBFbnRpdHkoJ2Zhdm9yaXRlcycpXG4vLyBUaGUgdXNlcl9pZCBmb3JlaWduIGtleSBuZWVkcyBhbiBpbmRleCBvZiBpdHMgb3duLiBXaXRob3V0IGl0IE15U1FMIGJvcnJvd3MgdGhlIHVuaXF1ZSBpbmRleCBiZWxvdyxcbi8vIGFuZCBzeW5jaHJvbml6ZSBjYW4gbm8gbG9uZ2VyIGRyb3AvcmVidWlsZCB0aGF0IGluZGV4IHdoZW4gYHR5cGVgIGNoYW5nZXMgKGUuZy4gYSBuZXcgRmF2b3JpdGVUeXBlKS5cbkBJbmRleCgnSURYX2Zhdm9yaXRlc191c2VyX2lkJywgWyd1c2VySWQnXSlcbkBJbmRleChbJ3VzZXJJZCcsICd0eXBlJywgJ3RhcmdldElkJ10sIHsgdW5pcXVlOiB0cnVlIH0pXG5ASW5kZXgoWyd0eXBlJywgJ3RhcmdldElkJ10pXG5leHBvcnQgY2xhc3MgRmF2b3JpdGUgZXh0ZW5kcyBCYXNlRW50aXR5IHtcbiAgQENvbHVtbih7IG5hbWU6ICd1c2VyX2lkJyB9KVxuICB1c2VySWQ6IG51bWJlcjtcblxuICBATWFueVRvT25lKCgpID0+IFVzZXIsIHsgb25EZWxldGU6ICdDQVNDQURFJyB9KVxuICAvLyBOYW1lZCBleHBsaWNpdGx5IHNvIHN5bmNocm9uaXplIGRyb3BzIHRoZSBvbGQgYXV0by1uYW1lZCBrZXkgZmlyc3QsIHJlYnVpbGRzIHRoZSBpbmRleGVzLCB0aGVuIHJlLWFkZHMgaXQuXG4gIEBKb2luQ29sdW1uKHsgbmFtZTogJ3VzZXJfaWQnLCBmb3JlaWduS2V5Q29uc3RyYWludE5hbWU6ICdGS19mYXZvcml0ZXNfdXNlcl9pZCcgfSlcbiAgdXNlcj86IFJlbGF0aW9uPFVzZXI+O1xuXG4gIEBBcGlQcm9wZXJ0eSh7IGVudW06IEZhdm9yaXRlVHlwZSB9KVxuICBAQ29sdW1uKHsgdHlwZTogJ2VudW0nLCBlbnVtOiBGYXZvcml0ZVR5cGUgfSlcbiAgdHlwZTogRmF2b3JpdGVUeXBlO1xuXG4gIEBBcGlQcm9wZXJ0eSh7IGV4YW1wbGU6ICcxMicsIGRlc2NyaXB0aW9uOiAnVHJpcC9hY3Rpdml0eSBpZCwgb3IgR29vZ2xlIHBsYWNlSWQnIH0pXG4gIEBDb2x1bW4oeyBuYW1lOiAndGFyZ2V0X2lkJywgbGVuZ3RoOiAyNTUgfSlcbiAgdGFyZ2V0SWQ6IHN0cmluZztcblxuICBAQXBpUHJvcGVydHkoeyBleGFtcGxlOiAnTGlzYm9uIHdlZWtlbmQnIH0pXG4gIEBDb2x1bW4oeyBsZW5ndGg6IDIwMCB9KVxuICB0aXRsZTogc3RyaW5nO1xuXG4gIEBBcGlQcm9wZXJ0eU9wdGlvbmFsKHsgbnVsbGFibGU6IHRydWUsIGV4YW1wbGU6ICdMaXNib24sIFBvcnR1Z2FsIMK3IDMgZGF5cycgfSlcbiAgQENvbHVtbih7IHR5cGU6ICd2YXJjaGFyJywgbGVuZ3RoOiAzMDAsIG51bGxhYmxlOiB0cnVlIH0pXG4gIHN1YnRpdGxlOiBzdHJpbmcgfCBudWxsO1xuXG4gIEBBcGlQcm9wZXJ0eU9wdGlvbmFsKHsgbnVsbGFibGU6IHRydWUgfSlcbiAgQENvbHVtbih7IG5hbWU6ICdpbWFnZV91cmwnLCB0eXBlOiAndGV4dCcsIG51bGxhYmxlOiB0cnVlIH0pIC8vIEdvb2dsZSBwaG90byB1cmxzIGNhbiBwYXNzIDUwMCBjaGFyc1xuICBpbWFnZVVybDogc3RyaW5nIHwgbnVsbDtcbn1cbiJdLCJ2ZXJzaW9uIjozfQ==

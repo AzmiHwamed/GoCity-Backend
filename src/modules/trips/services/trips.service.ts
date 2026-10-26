@@ -24,6 +24,7 @@ import { TripAccessService } from '../access/trip-access.service';
 import { InviteLinkDto } from '../dto/member.dto';
 import {
   BrowseTripsDto,
+  CityBreaksQueryDto,
   CopyTripDto,
   MyTripsQueryDto,
   ProfileTripDto,
@@ -343,13 +344,59 @@ export class TripsService {
     if (query.cityPlaceId) base.cityPlaceId = query.cityPlaceId;
     if (query.from) base.startDate = MoreThanOrEqual(query.from);
     if (query.to) base.endDate = LessThanOrEqual(query.to);
-    // Free text matches the trip name or its city ("lisb" finds trips in Lisbon).
-    const text = query.q?.trim() ? Like(`%${escapeLike(query.q.trim())}%`) : undefined;
+    return this.browsePublicTrips(query, viewer, base, query.q, ['name', 'city']);
+  }
+
+  /** Public trips whose destination matches one of the caller's current or upcoming trips. */
+  async browseForYou(query: BrowseTripsDto, viewer: AuthUser): Promise<Paginated<PublicTripDto>> {
+    const today = new Date().toISOString().slice(0, 10);
+    const memberships = await this.members.find({
+      where: { userId: viewer.id, trip: { endDate: MoreThanOrEqual(today) } },
+      relations: { trip: true },
+    });
+    const placeIds = [...new Set(memberships.map((m) => m.trip?.cityPlaceId).filter(Boolean))] as string[];
+    const cities = [...new Set(memberships.map((m) => m.trip?.city).filter(Boolean))] as string[];
+    if (!placeIds.length && !cities.length) return new Paginated([], 0, query.page, query.limit);
+
+    const bases: FindOptionsWhere<Trip>[] = [];
+    if (placeIds.length) bases.push({ visibility: TripVisibility.PUBLIC, cityPlaceId: In(placeIds) });
+    if (cities.length) bases.push({ visibility: TripVisibility.PUBLIC, city: In(cities) });
+    return this.browsePublicTrips(query, viewer, bases, query.q, ['name', 'city']);
+  }
+
+  /** Public trips searched exclusively by destination city. */
+  async browseCityBreaks(
+    query: CityBreaksQueryDto,
+    viewer: AuthUser,
+  ): Promise<Paginated<PublicTripDto>> {
+    const base: FindOptionsWhere<Trip> = { visibility: TripVisibility.PUBLIC };
+    if (query.cityPlaceId) base.cityPlaceId = query.cityPlaceId;
+    return this.browsePublicTrips(query, viewer, base, query.city, ['city']);
+  }
+
+  /** Public trips created by organization (agency) accounts only. */
+  async browseAgencyTrips(query: BrowseTripsDto, viewer: AuthUser): Promise<Paginated<PublicTripDto>> {
+    const base: FindOptionsWhere<Trip> = {
+      visibility: TripVisibility.PUBLIC,
+      owner: { role: UserRole.ORGANIZATION },
+    };
+    if (query.cityPlaceId) base.cityPlaceId = query.cityPlaceId;
+    if (query.from) base.startDate = MoreThanOrEqual(query.from);
+    if (query.to) base.endDate = LessThanOrEqual(query.to);
+    return this.browsePublicTrips(query, viewer, base, query.q, ['name', 'city']);
+  }
+
+  private async browsePublicTrips(
+    query: Pick<BrowseTripsDto, 'page' | 'limit' | 'skip' | 'sort'>,
+    viewer: AuthUser,
+    base: FindOptionsWhere<Trip> | FindOptionsWhere<Trip>[],
+    search: string | undefined,
+    fields: Array<'name' | 'city'>,
+  ): Promise<Paginated<PublicTripDto>> {
+    const bases = Array.isArray(base) ? base : [base];
+    const text = search?.trim() ? Like(`%${escapeLike(search.trim())}%`) : undefined;
     const where = text
-      ? [
-          { ...base, name: text },
-          { ...base, city: text },
-        ]
+      ? bases.flatMap((item) => fields.map((field) => ({ ...item, [field]: text })))
       : base;
 
     const [trips, total] = await this.trips.findAndCount({

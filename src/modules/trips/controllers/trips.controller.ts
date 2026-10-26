@@ -27,6 +27,7 @@ import { CurrentTripRole, TripRole, TripRoleGuard } from '../access/trip-role.gu
 import { InviteLinkDto, InvitePreviewDto, JoinResultDto } from '../dto/member.dto';
 import {
   BrowseTripsDto,
+  CityBreaksQueryDto,
   CopyTripDto,
   MyTripsQueryDto,
   PublicTripDto,
@@ -84,6 +85,45 @@ export class TripsController {
     @CurrentUser() user: AuthUser,
   ): Promise<Paginated<PublicTripDto>> {
     return this.tripsService.browsePublic(query, user);
+  }
+
+  @Get('public/for-you')
+  @ApiOperation({
+    summary: 'Browse public trips for you',
+    description: 'Shows public trips with a destination matching one of your current or upcoming trips.',
+  })
+  @ResponseTitle('For-you trips fetched')
+  forYou(
+    @Query() query: BrowseTripsDto,
+    @CurrentUser() user: AuthUser,
+  ): Promise<Paginated<PublicTripDto>> {
+    return this.tripsService.browseForYou(query, user);
+  }
+
+  @Get('public/city-breaks')
+  @ApiOperation({
+    summary: 'Browse city breaks',
+    description: 'Searches public trips by destination city or city placeId.',
+  })
+  @ResponseTitle('City-break trips fetched')
+  cityBreaks(
+    @Query() query: CityBreaksQueryDto,
+    @CurrentUser() user: AuthUser,
+  ): Promise<Paginated<PublicTripDto>> {
+    return this.tripsService.browseCityBreaks(query, user);
+  }
+
+  @Get('public/agencies')
+  @ApiOperation({
+    summary: 'Browse agency trips',
+    description: 'Shows only public trips created by organization accounts.',
+  })
+  @ResponseTitle('Agency trips fetched')
+  agencyTrips(
+    @Query() query: BrowseTripsDto,
+    @CurrentUser() user: AuthUser,
+  ): Promise<Paginated<PublicTripDto>> {
+    return this.tripsService.browseAgencyTrips(query, user);
   }
 
   @Get('public/:tripId')

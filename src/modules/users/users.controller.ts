@@ -29,6 +29,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { Paginated } from '../../common/dto/paginated-response.dto';
+import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 import { CurrentUser, Roles } from '../auth/decorators';
 import { CreateUserDto } from './dto/create-user.dto';
 import { QueryUserDto } from './dto/query-user.dto';
@@ -36,6 +37,7 @@ import { SearchUsersDto, UserSearchResultDto } from './dto/search-users.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User, UserRole } from './entities/user.entity';
+import { Trip } from '../trips/entities/trip.entity';
 import { UsersService } from './users.service';
 import { LegalService } from '../legal/legal.service';
 import { ResponseTitle } from '../../common/response/api-response';
@@ -125,6 +127,30 @@ export class UsersController {
   }
 
   // ── Admin ─────────────────────────────────────────────────
+
+  @Get('admin/overview')
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'Admin dashboard overview' })
+  @ApiForbiddenResponse()
+  @ResponseTitle('Admin overview fetched')
+  adminOverview(): Promise<{
+    users: number;
+    travellers: number;
+    agencies: number;
+    admins: number;
+    trips: number;
+    publicTrips: number;
+  }> {
+    return this.usersService.adminOverview();
+  }
+
+  @Get('admin/trips')
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'List all trips, including private trips (admin)' })
+  @ResponseTitle('Admin trips fetched')
+  adminTrips(@Query() query: PaginationQueryDto): Promise<Paginated<Trip>> {
+    return this.usersService.adminTrips(query);
+  }
 
   @Post()
   @Roles(UserRole.ADMIN)

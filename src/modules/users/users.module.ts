@@ -9,6 +9,7 @@ import { Interest } from '../interests/entities/interest.entity';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 import { LegalModule } from '../legal/legal.module';
+import { AdminBootstrapService } from './admin-bootstrap.service';
 
 @Module({
   imports: [
@@ -17,7 +18,7 @@ import { LegalModule } from '../legal/legal.module';
     LegalModule,
   ],
   controllers: [UsersController],
-  providers: [UsersService],
+  providers: [UsersService, AdminBootstrapService],
   exports: [UsersService],
 })
 export class UsersModule {}

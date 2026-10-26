@@ -20,7 +20,8 @@
     "migration:create": "typeorm-ts-node-commonjs migration:create src/database/migrations/$npm_config_name",
     "migration:run": "npm run typeorm -- migration:run",
     "migration:revert": "npm run typeorm -- migration:revert",
-    "seed:admin": "ts-node src/database/seeds/seed-admin.ts"
+    "seed:admin": "ts-node src/database/seeds/seed-admin.ts",
+    "seed:demo": "ts-node src/database/seeds/seed-demo.ts"
   },
   "dependencies": {
     "@nestjs/cache-manager": "^2.3.0",

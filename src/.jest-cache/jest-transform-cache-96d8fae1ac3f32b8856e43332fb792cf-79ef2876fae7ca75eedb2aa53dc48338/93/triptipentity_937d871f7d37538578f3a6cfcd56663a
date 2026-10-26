@@ -1,0 +1,42 @@
+a181e30b683c0aa75cdfc6d47c5b1fc0
+"use strict";
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.TripTip = void 0;
+const typeorm_1 = require("typeorm");
+const base_entity_1 = require("../../../common/entities/base.entity");
+const trip_entity_1 = require("./trip.entity");
+/** A tip the owner shares with people viewing the trip ("book the tram early"). */
+let TripTip = class TripTip extends base_entity_1.BaseEntity {
+};
+exports.TripTip = TripTip;
+__decorate([
+    (0, typeorm_1.Column)({ name: 'trip_id' }),
+    __metadata("design:type", Number)
+], TripTip.prototype, "tripId", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => trip_entity_1.Trip, { onDelete: 'CASCADE' }),
+    (0, typeorm_1.JoinColumn)({ name: 'trip_id' }),
+    __metadata("design:type", Object)
+], TripTip.prototype, "trip", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ length: 500 }),
+    __metadata("design:type", String)
+], TripTip.prototype, "text", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'int' }),
+    __metadata("design:type", Number)
+], TripTip.prototype, "position", void 0);
+exports.TripTip = TripTip = __decorate([
+    (0, typeorm_1.Entity)('trip_tips'),
+    (0, typeorm_1.Index)(['tripId', 'position'])
+], TripTip);
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJmaWxlIjoiQzpcXFVzZXJzXFxha2loaVxcRG9jdW1lbnRzXFxuZXN0anMtYmFja2VuZFxcc3JjXFxtb2R1bGVzXFx0cmlwc1xcZW50aXRpZXNcXHRyaXAtdGlwLmVudGl0eS50cyIsIm1hcHBpbmdzIjoiOzs7Ozs7Ozs7Ozs7QUFBQSxxQ0FBaUY7QUFDakYsc0VBQWtFO0FBQ2xFLCtDQUFxQztBQUVyQyxtRkFBbUY7QUFHNUUsSUFBTSxPQUFPLEdBQWIsTUFBTSxPQUFRLFNBQVEsd0JBQVU7Q0FhdEMsQ0FBQTtBQWJZLDBCQUFPO0FBRWxCO0lBREMsSUFBQSxnQkFBTSxFQUFDLEVBQUUsSUFBSSxFQUFFLFNBQVMsRUFBRSxDQUFDOzt1Q0FDYjtBQUlmO0lBRkMsSUFBQSxtQkFBUyxFQUFDLEdBQUcsRUFBRSxDQUFDLGtCQUFJLEVBQUUsRUFBRSxRQUFRLEVBQUUsU0FBUyxFQUFFLENBQUM7SUFDOUMsSUFBQSxvQkFBVSxFQUFDLEVBQUUsSUFBSSxFQUFFLFNBQVMsRUFBRSxDQUFDOztxQ0FDVjtBQUd0QjtJQURDLElBQUEsZ0JBQU0sRUFBQyxFQUFFLE1BQU0sRUFBRSxHQUFHLEVBQUUsQ0FBQzs7cUNBQ1g7QUFHYjtJQURDLElBQUEsZ0JBQU0sRUFBQyxFQUFFLElBQUksRUFBRSxLQUFLLEVBQUUsQ0FBQzs7eUNBQ1A7a0JBWk4sT0FBTztJQUZuQixJQUFBLGdCQUFNLEVBQUMsV0FBVyxDQUFDO0lBQ25CLElBQUEsZUFBSyxFQUFDLENBQUMsUUFBUSxFQUFFLFVBQVUsQ0FBQyxDQUFDO0dBQ2pCLE9BQU8sQ0FhbkIiLCJuYW1lcyI6W10sInNvdXJjZXMiOlsiQzpcXFVzZXJzXFxha2loaVxcRG9jdW1lbnRzXFxuZXN0anMtYmFja2VuZFxcc3JjXFxtb2R1bGVzXFx0cmlwc1xcZW50aXRpZXNcXHRyaXAtdGlwLmVudGl0eS50cyJdLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgeyBDb2x1bW4sIEVudGl0eSwgSW5kZXgsIEpvaW5Db2x1bW4sIE1hbnlUb09uZSwgUmVsYXRpb24gfSBmcm9tICd0eXBlb3JtJztcbmltcG9ydCB7IEJhc2VFbnRpdHkgfSBmcm9tICcuLi8uLi8uLi9jb21tb24vZW50aXRpZXMvYmFzZS5lbnRpdHknO1xuaW1wb3J0IHsgVHJpcCB9IGZyb20gJy4vdHJpcC5lbnRpdHknO1xuXG4vKiogQSB0aXAgdGhlIG93bmVyIHNoYXJlcyB3aXRoIHBlb3BsZSB2aWV3aW5nIHRoZSB0cmlwIChcImJvb2sgdGhlIHRyYW0gZWFybHlcIikuICovXG5ARW50aXR5KCd0cmlwX3RpcHMnKVxuQEluZGV4KFsndHJpcElkJywgJ3Bvc2l0aW9uJ10pXG5leHBvcnQgY2xhc3MgVHJpcFRpcCBleHRlbmRzIEJhc2VFbnRpdHkge1xuICBAQ29sdW1uKHsgbmFtZTogJ3RyaXBfaWQnIH0pXG4gIHRyaXBJZDogbnVtYmVyO1xuXG4gIEBNYW55VG9PbmUoKCkgPT4gVHJpcCwgeyBvbkRlbGV0ZTogJ0NBU0NBREUnIH0pXG4gIEBKb2luQ29sdW1uKHsgbmFtZTogJ3RyaXBfaWQnIH0pXG4gIHRyaXA/OiBSZWxhdGlvbjxUcmlwPjtcblxuICBAQ29sdW1uKHsgbGVuZ3RoOiA1MDAgfSlcbiAgdGV4dDogc3RyaW5nO1xuXG4gIEBDb2x1bW4oeyB0eXBlOiAnaW50JyB9KVxuICBwb3NpdGlvbjogbnVtYmVyO1xufVxuIl0sInZlcnNpb24iOjN9

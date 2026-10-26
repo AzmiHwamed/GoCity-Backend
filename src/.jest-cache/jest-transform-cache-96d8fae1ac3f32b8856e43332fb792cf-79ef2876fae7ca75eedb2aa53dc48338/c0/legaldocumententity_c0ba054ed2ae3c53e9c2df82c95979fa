@@ -1,0 +1,68 @@
+35b3e3b5b714c09aff46f5e213bf4287
+"use strict";
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.LegalDocument = exports.LEGAL_SLUGS = exports.LegalType = void 0;
+const swagger_1 = require("@nestjs/swagger");
+const typeorm_1 = require("typeorm");
+const base_entity_1 = require("../../../common/entities/base.entity");
+var LegalType;
+(function (LegalType) {
+    LegalType["PRIVACY_POLICY"] = "privacy_policy";
+    LegalType["TERMS_OF_USE"] = "terms_of_use";
+})(LegalType || (exports.LegalType = LegalType = {}));
+/** URL slug per type: /legal/privacy-policy, /legal/terms. */
+exports.LEGAL_SLUGS = {
+    'privacy-policy': LegalType.PRIVACY_POLICY,
+    terms: LegalType.TERMS_OF_USE,
+};
+/**
+ * One published version of the privacy policy or the terms of use. Versions are never edited
+ * after publishing; publishing a new one makes it the current version.
+ */
+let LegalDocument = class LegalDocument extends base_entity_1.BaseEntity {
+};
+exports.LegalDocument = LegalDocument;
+__decorate([
+    (0, swagger_1.ApiProperty)({ enum: LegalType }),
+    (0, typeorm_1.Column)({ type: 'enum', enum: LegalType }),
+    __metadata("design:type", String)
+], LegalDocument.prototype, "type", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: '1.0' }),
+    (0, typeorm_1.Column)({ length: 20 }),
+    __metadata("design:type", String)
+], LegalDocument.prototype, "version", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: 'Privacy Policy' }),
+    (0, typeorm_1.Column)({ length: 150 }),
+    __metadata("design:type", String)
+], LegalDocument.prototype, "title", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ description: 'Markdown: # headings, paragraphs, - lists, **bold**, [links](url)' }),
+    (0, typeorm_1.Column)({ type: 'mediumtext' }),
+    __metadata("design:type", String)
+], LegalDocument.prototype, "content", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: '2026-10-15', description: 'Date the version takes effect' }),
+    (0, typeorm_1.Column)({ name: 'effective_date', type: 'date' }),
+    __metadata("design:type", String)
+], LegalDocument.prototype, "effectiveDate", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ description: 'The version shown to users and that they are asked to accept' }),
+    (0, typeorm_1.Column)({ name: 'is_current', default: false }),
+    __metadata("design:type", Boolean)
+], LegalDocument.prototype, "isCurrent", void 0);
+exports.LegalDocument = LegalDocument = __decorate([
+    (0, typeorm_1.Entity)('legal_documents'),
+    (0, typeorm_1.Index)(['type', 'version'], { unique: true })
+], LegalDocument);
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJmaWxlIjoiQzpcXFVzZXJzXFxha2loaVxcRG9jdW1lbnRzXFxuZXN0anMtYmFja2VuZFxcc3JjXFxtb2R1bGVzXFxsZWdhbFxcZW50aXRpZXNcXGxlZ2FsLWRvY3VtZW50LmVudGl0eS50cyIsIm1hcHBpbmdzIjoiOzs7Ozs7Ozs7Ozs7QUFBQSw2Q0FBOEM7QUFDOUMscUNBQWdEO0FBQ2hELHNFQUFrRTtBQUVsRSxJQUFZLFNBR1g7QUFIRCxXQUFZLFNBQVM7SUFDbkIsOENBQWlDLENBQUE7SUFDakMsMENBQTZCLENBQUE7QUFDL0IsQ0FBQyxFQUhXLFNBQVMseUJBQVQsU0FBUyxRQUdwQjtBQUVELDhEQUE4RDtBQUNqRCxRQUFBLFdBQVcsR0FBOEI7SUFDcEQsZ0JBQWdCLEVBQUUsU0FBUyxDQUFDLGNBQWM7SUFDMUMsS0FBSyxFQUFFLFNBQVMsQ0FBQyxZQUFZO0NBQzlCLENBQUM7QUFFRjs7O0dBR0c7QUFHSSxJQUFNLGFBQWEsR0FBbkIsTUFBTSxhQUFjLFNBQVEsd0JBQVU7Q0F3QjVDLENBQUE7QUF4Qlksc0NBQWE7QUFHeEI7SUFGQyxJQUFBLHFCQUFXLEVBQUMsRUFBRSxJQUFJLEVBQUUsU0FBUyxFQUFFLENBQUM7SUFDaEMsSUFBQSxnQkFBTSxFQUFDLEVBQUUsSUFBSSxFQUFFLE1BQU0sRUFBRSxJQUFJLEVBQUUsU0FBUyxFQUFFLENBQUM7OzJDQUMxQjtBQUloQjtJQUZDLElBQUEscUJBQVcsRUFBQyxFQUFFLE9BQU8sRUFBRSxLQUFLLEVBQUUsQ0FBQztJQUMvQixJQUFBLGdCQUFNLEVBQUMsRUFBRSxNQUFNLEVBQUUsRUFBRSxFQUFFLENBQUM7OzhDQUNQO0FBSWhCO0lBRkMsSUFBQSxxQkFBVyxFQUFDLEVBQUUsT0FBTyxFQUFFLGdCQUFnQixFQUFFLENBQUM7SUFDMUMsSUFBQSxnQkFBTSxFQUFDLEVBQUUsTUFBTSxFQUFFLEdBQUcsRUFBRSxDQUFDOzs0Q0FDVjtBQUlkO0lBRkMsSUFBQSxxQkFBVyxFQUFDLEVBQUUsV0FBVyxFQUFFLG1FQUFtRSxFQUFFLENBQUM7SUFDakcsSUFBQSxnQkFBTSxFQUFDLEVBQUUsSUFBSSxFQUFFLFlBQVksRUFBRSxDQUFDOzs4Q0FDZjtBQUloQjtJQUZDLElBQUEscUJBQVcsRUFBQyxFQUFFLE9BQU8sRUFBRSxZQUFZLEVBQUUsV0FBVyxFQUFFLCtCQUErQixFQUFFLENBQUM7SUFDcEYsSUFBQSxnQkFBTSxFQUFDLEVBQUUsSUFBSSxFQUFFLGdCQUFnQixFQUFFLElBQUksRUFBRSxNQUFNLEVBQUUsQ0FBQzs7b0RBQzNCO0FBSXRCO0lBRkMsSUFBQSxxQkFBVyxFQUFDLEVBQUUsV0FBVyxFQUFFLDhEQUE4RCxFQUFFLENBQUM7SUFDNUYsSUFBQSxnQkFBTSxFQUFDLEVBQUUsSUFBSSxFQUFFLFlBQVksRUFBRSxPQUFPLEVBQUUsS0FBSyxFQUFFLENBQUM7O2dEQUM1Qjt3QkF2QlIsYUFBYTtJQUZ6QixJQUFBLGdCQUFNLEVBQUMsaUJBQWlCLENBQUM7SUFDekIsSUFBQSxlQUFLLEVBQUMsQ0FBQyxNQUFNLEVBQUUsU0FBUyxDQUFDLEVBQUUsRUFBRSxNQUFNLEVBQUUsSUFBSSxFQUFFLENBQUM7R0FDaEMsYUFBYSxDQXdCekIiLCJuYW1lcyI6W10sInNvdXJjZXMiOlsiQzpcXFVzZXJzXFxha2loaVxcRG9jdW1lbnRzXFxuZXN0anMtYmFja2VuZFxcc3JjXFxtb2R1bGVzXFxsZWdhbFxcZW50aXRpZXNcXGxlZ2FsLWRvY3VtZW50LmVudGl0eS50cyJdLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgeyBBcGlQcm9wZXJ0eSB9IGZyb20gJ0BuZXN0anMvc3dhZ2dlcic7XG5pbXBvcnQgeyBDb2x1bW4sIEVudGl0eSwgSW5kZXggfSBmcm9tICd0eXBlb3JtJztcbmltcG9ydCB7IEJhc2VFbnRpdHkgfSBmcm9tICcuLi8uLi8uLi9jb21tb24vZW50aXRpZXMvYmFzZS5lbnRpdHknO1xuXG5leHBvcnQgZW51bSBMZWdhbFR5cGUge1xuICBQUklWQUNZX1BPTElDWSA9ICdwcml2YWN5X3BvbGljeScsXG4gIFRFUk1TX09GX1VTRSA9ICd0ZXJtc19vZl91c2UnLFxufVxuXG4vKiogVVJMIHNsdWcgcGVyIHR5cGU6IC9sZWdhbC9wcml2YWN5LXBvbGljeSwgL2xlZ2FsL3Rlcm1zLiAqL1xuZXhwb3J0IGNvbnN0IExFR0FMX1NMVUdTOiBSZWNvcmQ8c3RyaW5nLCBMZWdhbFR5cGU+ID0ge1xuICAncHJpdmFjeS1wb2xpY3knOiBMZWdhbFR5cGUuUFJJVkFDWV9QT0xJQ1ksXG4gIHRlcm1zOiBMZWdhbFR5cGUuVEVSTVNfT0ZfVVNFLFxufTtcblxuLyoqXG4gKiBPbmUgcHVibGlzaGVkIHZlcnNpb24gb2YgdGhlIHByaXZhY3kgcG9saWN5IG9yIHRoZSB0ZXJtcyBvZiB1c2UuIFZlcnNpb25zIGFyZSBuZXZlciBlZGl0ZWRcbiAqIGFmdGVyIHB1Ymxpc2hpbmc7IHB1Ymxpc2hpbmcgYSBuZXcgb25lIG1ha2VzIGl0IHRoZSBjdXJyZW50IHZlcnNpb24uXG4gKi9cbkBFbnRpdHkoJ2xlZ2FsX2RvY3VtZW50cycpXG5ASW5kZXgoWyd0eXBlJywgJ3ZlcnNpb24nXSwgeyB1bmlxdWU6IHRydWUgfSlcbmV4cG9ydCBjbGFzcyBMZWdhbERvY3VtZW50IGV4dGVuZHMgQmFzZUVudGl0eSB7XG4gIEBBcGlQcm9wZXJ0eSh7IGVudW06IExlZ2FsVHlwZSB9KVxuICBAQ29sdW1uKHsgdHlwZTogJ2VudW0nLCBlbnVtOiBMZWdhbFR5cGUgfSlcbiAgdHlwZTogTGVnYWxUeXBlO1xuXG4gIEBBcGlQcm9wZXJ0eSh7IGV4YW1wbGU6ICcxLjAnIH0pXG4gIEBDb2x1bW4oeyBsZW5ndGg6IDIwIH0pXG4gIHZlcnNpb246IHN0cmluZztcblxuICBAQXBpUHJvcGVydHkoeyBleGFtcGxlOiAnUHJpdmFjeSBQb2xpY3knIH0pXG4gIEBDb2x1bW4oeyBsZW5ndGg6IDE1MCB9KVxuICB0aXRsZTogc3RyaW5nO1xuXG4gIEBBcGlQcm9wZXJ0eSh7IGRlc2NyaXB0aW9uOiAnTWFya2Rvd246ICMgaGVhZGluZ3MsIHBhcmFncmFwaHMsIC0gbGlzdHMsICoqYm9sZCoqLCBbbGlua3NdKHVybCknIH0pXG4gIEBDb2x1bW4oeyB0eXBlOiAnbWVkaXVtdGV4dCcgfSlcbiAgY29udGVudDogc3RyaW5nO1xuXG4gIEBBcGlQcm9wZXJ0eSh7IGV4YW1wbGU6ICcyMDI2LTEwLTE1JywgZGVzY3JpcHRpb246ICdEYXRlIHRoZSB2ZXJzaW9uIHRha2VzIGVmZmVjdCcgfSlcbiAgQENvbHVtbih7IG5hbWU6ICdlZmZlY3RpdmVfZGF0ZScsIHR5cGU6ICdkYXRlJyB9KVxuICBlZmZlY3RpdmVEYXRlOiBzdHJpbmc7XG5cbiAgQEFwaVByb3BlcnR5KHsgZGVzY3JpcHRpb246ICdUaGUgdmVyc2lvbiBzaG93biB0byB1c2VycyBhbmQgdGhhdCB0aGV5IGFyZSBhc2tlZCB0byBhY2NlcHQnIH0pXG4gIEBDb2x1bW4oeyBuYW1lOiAnaXNfY3VycmVudCcsIGRlZmF1bHQ6IGZhbHNlIH0pXG4gIGlzQ3VycmVudDogYm9vbGVhbjtcbn1cbiJdLCJ2ZXJzaW9uIjozfQ==

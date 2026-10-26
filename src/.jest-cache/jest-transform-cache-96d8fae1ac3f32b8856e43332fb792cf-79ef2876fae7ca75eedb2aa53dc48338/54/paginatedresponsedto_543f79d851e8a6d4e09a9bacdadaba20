@@ -1,0 +1,41 @@
+f47c539ce7534a4a4a1b39110a155311
+"use strict";
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Paginated = exports.PaginationMeta = void 0;
+const swagger_1 = require("@nestjs/swagger");
+class PaginationMeta {
+}
+exports.PaginationMeta = PaginationMeta;
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    __metadata("design:type", Number)
+], PaginationMeta.prototype, "page", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    __metadata("design:type", Number)
+], PaginationMeta.prototype, "limit", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    __metadata("design:type", Number)
+], PaginationMeta.prototype, "total", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    __metadata("design:type", Number)
+], PaginationMeta.prototype, "totalPages", void 0);
+class Paginated {
+    constructor(items, total, page, limit) {
+        this.items = items;
+        this.meta = { page, limit, total, totalPages: Math.ceil(total / limit) };
+    }
+}
+exports.Paginated = Paginated;
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJmaWxlIjoiQzpcXFVzZXJzXFxha2loaVxcRG9jdW1lbnRzXFxuZXN0anMtYmFja2VuZFxcc3JjXFxjb21tb25cXGR0b1xccGFnaW5hdGVkLXJlc3BvbnNlLmR0by50cyIsIm1hcHBpbmdzIjoiOzs7Ozs7Ozs7Ozs7QUFBQSw2Q0FBOEM7QUFFOUMsTUFBYSxjQUFjO0NBSzFCO0FBTEQsd0NBS0M7QUFKZ0I7SUFBZCxJQUFBLHFCQUFXLEdBQUU7OzRDQUFjO0FBQ2I7SUFBZCxJQUFBLHFCQUFXLEdBQUU7OzZDQUFlO0FBQ2Q7SUFBZCxJQUFBLHFCQUFXLEdBQUU7OzZDQUFlO0FBQ2Q7SUFBZCxJQUFBLHFCQUFXLEdBQUU7O2tEQUFvQjtBQUdwQyxNQUFhLFNBQVM7SUFJcEIsWUFBWSxLQUFVLEVBQUUsS0FBYSxFQUFFLElBQVksRUFBRSxLQUFhO1FBQ2hFLElBQUksQ0FBQyxLQUFLLEdBQUcsS0FBSyxDQUFDO1FBQ25CLElBQUksQ0FBQyxJQUFJLEdBQUcsRUFBRSxJQUFJLEVBQUUsS0FBSyxFQUFFLEtBQUssRUFBRSxVQUFVLEVBQUUsSUFBSSxDQUFDLElBQUksQ0FBQyxLQUFLLEdBQUcsS0FBSyxDQUFDLEVBQUUsQ0FBQztJQUMzRSxDQUFDO0NBQ0Y7QUFSRCw4QkFRQyIsIm5hbWVzIjpbXSwic291cmNlcyI6WyJDOlxcVXNlcnNcXGFraWhpXFxEb2N1bWVudHNcXG5lc3Rqcy1iYWNrZW5kXFxzcmNcXGNvbW1vblxcZHRvXFxwYWdpbmF0ZWQtcmVzcG9uc2UuZHRvLnRzIl0sInNvdXJjZXNDb250ZW50IjpbImltcG9ydCB7IEFwaVByb3BlcnR5IH0gZnJvbSAnQG5lc3Rqcy9zd2FnZ2VyJztcblxuZXhwb3J0IGNsYXNzIFBhZ2luYXRpb25NZXRhIHtcbiAgQEFwaVByb3BlcnR5KCkgcGFnZTogbnVtYmVyO1xuICBAQXBpUHJvcGVydHkoKSBsaW1pdDogbnVtYmVyO1xuICBAQXBpUHJvcGVydHkoKSB0b3RhbDogbnVtYmVyO1xuICBAQXBpUHJvcGVydHkoKSB0b3RhbFBhZ2VzOiBudW1iZXI7XG59XG5cbmV4cG9ydCBjbGFzcyBQYWdpbmF0ZWQ8VD4ge1xuICBpdGVtczogVFtdO1xuICBtZXRhOiBQYWdpbmF0aW9uTWV0YTtcblxuICBjb25zdHJ1Y3RvcihpdGVtczogVFtdLCB0b3RhbDogbnVtYmVyLCBwYWdlOiBudW1iZXIsIGxpbWl0OiBudW1iZXIpIHtcbiAgICB0aGlzLml0ZW1zID0gaXRlbXM7XG4gICAgdGhpcy5tZXRhID0geyBwYWdlLCBsaW1pdCwgdG90YWwsIHRvdGFsUGFnZXM6IE1hdGguY2VpbCh0b3RhbCAvIGxpbWl0KSB9O1xuICB9XG59XG4iXSwidmVyc2lvbiI6M30=

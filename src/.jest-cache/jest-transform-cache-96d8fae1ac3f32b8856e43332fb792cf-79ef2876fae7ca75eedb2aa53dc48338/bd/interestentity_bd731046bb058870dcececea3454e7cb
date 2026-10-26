@@ -1,0 +1,30 @@
+655b003abc3875085c291e3ea84b3b4a
+"use strict";
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Interest = void 0;
+const swagger_1 = require("@nestjs/swagger");
+const typeorm_1 = require("typeorm");
+const base_entity_1 = require("../../../common/entities/base.entity");
+/** A reusable interest that administrators curate for all user profiles. */
+let Interest = class Interest extends base_entity_1.BaseEntity {
+};
+exports.Interest = Interest;
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: 'Local food' }),
+    (0, typeorm_1.Index)({ unique: true }),
+    (0, typeorm_1.Column)({ length: 40 }),
+    __metadata("design:type", String)
+], Interest.prototype, "name", void 0);
+exports.Interest = Interest = __decorate([
+    (0, typeorm_1.Entity)('interests')
+], Interest);
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJmaWxlIjoiQzpcXFVzZXJzXFxha2loaVxcRG9jdW1lbnRzXFxuZXN0anMtYmFja2VuZFxcc3JjXFxtb2R1bGVzXFxpbnRlcmVzdHNcXGVudGl0aWVzXFxpbnRlcmVzdC5lbnRpdHkudHMiLCJtYXBwaW5ncyI6Ijs7Ozs7Ozs7Ozs7O0FBQUEsNkNBQThDO0FBQzlDLHFDQUFnRDtBQUNoRCxzRUFBa0U7QUFFbEUsNEVBQTRFO0FBRXJFLElBQU0sUUFBUSxHQUFkLE1BQU0sUUFBUyxTQUFRLHdCQUFVO0NBS3ZDLENBQUE7QUFMWSw0QkFBUTtBQUluQjtJQUhDLElBQUEscUJBQVcsRUFBQyxFQUFFLE9BQU8sRUFBRSxZQUFZLEVBQUUsQ0FBQztJQUN0QyxJQUFBLGVBQUssRUFBQyxFQUFFLE1BQU0sRUFBRSxJQUFJLEVBQUUsQ0FBQztJQUN2QixJQUFBLGdCQUFNLEVBQUMsRUFBRSxNQUFNLEVBQUUsRUFBRSxFQUFFLENBQUM7O3NDQUNWO21CQUpGLFFBQVE7SUFEcEIsSUFBQSxnQkFBTSxFQUFDLFdBQVcsQ0FBQztHQUNQLFFBQVEsQ0FLcEIiLCJuYW1lcyI6W10sInNvdXJjZXMiOlsiQzpcXFVzZXJzXFxha2loaVxcRG9jdW1lbnRzXFxuZXN0anMtYmFja2VuZFxcc3JjXFxtb2R1bGVzXFxpbnRlcmVzdHNcXGVudGl0aWVzXFxpbnRlcmVzdC5lbnRpdHkudHMiXSwic291cmNlc0NvbnRlbnQiOlsiaW1wb3J0IHsgQXBpUHJvcGVydHkgfSBmcm9tICdAbmVzdGpzL3N3YWdnZXInO1xuaW1wb3J0IHsgQ29sdW1uLCBFbnRpdHksIEluZGV4IH0gZnJvbSAndHlwZW9ybSc7XG5pbXBvcnQgeyBCYXNlRW50aXR5IH0gZnJvbSAnLi4vLi4vLi4vY29tbW9uL2VudGl0aWVzL2Jhc2UuZW50aXR5JztcblxuLyoqIEEgcmV1c2FibGUgaW50ZXJlc3QgdGhhdCBhZG1pbmlzdHJhdG9ycyBjdXJhdGUgZm9yIGFsbCB1c2VyIHByb2ZpbGVzLiAqL1xuQEVudGl0eSgnaW50ZXJlc3RzJylcbmV4cG9ydCBjbGFzcyBJbnRlcmVzdCBleHRlbmRzIEJhc2VFbnRpdHkge1xuICBAQXBpUHJvcGVydHkoeyBleGFtcGxlOiAnTG9jYWwgZm9vZCcgfSlcbiAgQEluZGV4KHsgdW5pcXVlOiB0cnVlIH0pXG4gIEBDb2x1bW4oeyBsZW5ndGg6IDQwIH0pXG4gIG5hbWU6IHN0cmluZztcbn1cbiJdLCJ2ZXJzaW9uIjozfQ==

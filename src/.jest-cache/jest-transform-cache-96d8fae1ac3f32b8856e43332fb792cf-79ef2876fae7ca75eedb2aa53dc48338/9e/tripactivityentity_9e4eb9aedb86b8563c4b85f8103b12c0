@@ -1,0 +1,47 @@
+b3a43407d27daa8d10ad8d4bc3cc2ee4
+"use strict";
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.TripActivity = void 0;
+const swagger_1 = require("@nestjs/swagger");
+const typeorm_1 = require("typeorm");
+const user_entity_1 = require("../../users/entities/user.entity");
+const activity_details_1 = require("./activity-details");
+const trip_entity_1 = require("./trip.entity");
+/** An activity or plan on a given day of a trip. */
+let TripActivity = class TripActivity extends activity_details_1.ActivityDetails {
+};
+exports.TripActivity = TripActivity;
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: 1 }),
+    (0, typeorm_1.Column)({ name: 'trip_id' }),
+    __metadata("design:type", Number)
+], TripActivity.prototype, "tripId", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => trip_entity_1.Trip, { onDelete: 'CASCADE' }),
+    (0, typeorm_1.JoinColumn)({ name: 'trip_id' }),
+    __metadata("design:type", Object)
+], TripActivity.prototype, "trip", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ example: 2, nullable: true }),
+    (0, typeorm_1.Column)({ name: 'created_by_id', type: 'int', nullable: true }),
+    __metadata("design:type", Object)
+], TripActivity.prototype, "createdById", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => user_entity_1.User, { onDelete: 'SET NULL', nullable: true }),
+    (0, typeorm_1.JoinColumn)({ name: 'created_by_id' }),
+    __metadata("design:type", Object)
+], TripActivity.prototype, "createdBy", void 0);
+exports.TripActivity = TripActivity = __decorate([
+    (0, typeorm_1.Entity)('trip_activities'),
+    (0, typeorm_1.Index)(['tripId', 'dayNumber', 'startTime'])
+], TripActivity);
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJmaWxlIjoiQzpcXFVzZXJzXFxha2loaVxcRG9jdW1lbnRzXFxuZXN0anMtYmFja2VuZFxcc3JjXFxtb2R1bGVzXFx0cmlwc1xcZW50aXRpZXNcXHRyaXAtYWN0aXZpdHkuZW50aXR5LnRzIiwibWFwcGluZ3MiOiI7Ozs7Ozs7Ozs7OztBQUFBLDZDQUFtRTtBQUNuRSxxQ0FBaUY7QUFDakYsa0VBQXdEO0FBQ3hELHlEQUFxRDtBQUNyRCwrQ0FBcUM7QUFFckMsb0RBQW9EO0FBRzdDLElBQU0sWUFBWSxHQUFsQixNQUFNLFlBQWEsU0FBUSxrQ0FBZTtDQWdCaEQsQ0FBQTtBQWhCWSxvQ0FBWTtBQUd2QjtJQUZDLElBQUEscUJBQVcsRUFBQyxFQUFFLE9BQU8sRUFBRSxDQUFDLEVBQUUsQ0FBQztJQUMzQixJQUFBLGdCQUFNLEVBQUMsRUFBRSxJQUFJLEVBQUUsU0FBUyxFQUFFLENBQUM7OzRDQUNiO0FBSWY7SUFGQyxJQUFBLG1CQUFTLEVBQUMsR0FBRyxFQUFFLENBQUMsa0JBQUksRUFBRSxFQUFFLFFBQVEsRUFBRSxTQUFTLEVBQUUsQ0FBQztJQUM5QyxJQUFBLG9CQUFVLEVBQUMsRUFBRSxJQUFJLEVBQUUsU0FBUyxFQUFFLENBQUM7OzBDQUNWO0FBSXRCO0lBRkMsSUFBQSw2QkFBbUIsRUFBQyxFQUFFLE9BQU8sRUFBRSxDQUFDLEVBQUUsUUFBUSxFQUFFLElBQUksRUFBRSxDQUFDO0lBQ25ELElBQUEsZ0JBQU0sRUFBQyxFQUFFLElBQUksRUFBRSxlQUFlLEVBQUUsSUFBSSxFQUFFLEtBQUssRUFBRSxRQUFRLEVBQUUsSUFBSSxFQUFFLENBQUM7O2lEQUNwQztBQUkzQjtJQUZDLElBQUEsbUJBQVMsRUFBQyxHQUFHLEVBQUUsQ0FBQyxrQkFBSSxFQUFFLEVBQUUsUUFBUSxFQUFFLFVBQVUsRUFBRSxRQUFRLEVBQUUsSUFBSSxFQUFFLENBQUM7SUFDL0QsSUFBQSxvQkFBVSxFQUFDLEVBQUUsSUFBSSxFQUFFLGVBQWUsRUFBRSxDQUFDOzsrQ0FDSjt1QkFmdkIsWUFBWTtJQUZ4QixJQUFBLGdCQUFNLEVBQUMsaUJBQWlCLENBQUM7SUFDekIsSUFBQSxlQUFLLEVBQUMsQ0FBQyxRQUFRLEVBQUUsV0FBVyxFQUFFLFdBQVcsQ0FBQyxDQUFDO0dBQy9CLFlBQVksQ0FnQnhCIiwibmFtZXMiOltdLCJzb3VyY2VzIjpbIkM6XFxVc2Vyc1xcYWtpaGlcXERvY3VtZW50c1xcbmVzdGpzLWJhY2tlbmRcXHNyY1xcbW9kdWxlc1xcdHJpcHNcXGVudGl0aWVzXFx0cmlwLWFjdGl2aXR5LmVudGl0eS50cyJdLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgeyBBcGlQcm9wZXJ0eSwgQXBpUHJvcGVydHlPcHRpb25hbCB9IGZyb20gJ0BuZXN0anMvc3dhZ2dlcic7XG5pbXBvcnQgeyBDb2x1bW4sIEVudGl0eSwgSW5kZXgsIEpvaW5Db2x1bW4sIE1hbnlUb09uZSwgUmVsYXRpb24gfSBmcm9tICd0eXBlb3JtJztcbmltcG9ydCB7IFVzZXIgfSBmcm9tICcuLi8uLi91c2Vycy9lbnRpdGllcy91c2VyLmVudGl0eSc7XG5pbXBvcnQgeyBBY3Rpdml0eURldGFpbHMgfSBmcm9tICcuL2FjdGl2aXR5LWRldGFpbHMnO1xuaW1wb3J0IHsgVHJpcCB9IGZyb20gJy4vdHJpcC5lbnRpdHknO1xuXG4vKiogQW4gYWN0aXZpdHkgb3IgcGxhbiBvbiBhIGdpdmVuIGRheSBvZiBhIHRyaXAuICovXG5ARW50aXR5KCd0cmlwX2FjdGl2aXRpZXMnKVxuQEluZGV4KFsndHJpcElkJywgJ2RheU51bWJlcicsICdzdGFydFRpbWUnXSlcbmV4cG9ydCBjbGFzcyBUcmlwQWN0aXZpdHkgZXh0ZW5kcyBBY3Rpdml0eURldGFpbHMge1xuICBAQXBpUHJvcGVydHkoeyBleGFtcGxlOiAxIH0pXG4gIEBDb2x1bW4oeyBuYW1lOiAndHJpcF9pZCcgfSlcbiAgdHJpcElkOiBudW1iZXI7XG5cbiAgQE1hbnlUb09uZSgoKSA9PiBUcmlwLCB7IG9uRGVsZXRlOiAnQ0FTQ0FERScgfSlcbiAgQEpvaW5Db2x1bW4oeyBuYW1lOiAndHJpcF9pZCcgfSlcbiAgdHJpcD86IFJlbGF0aW9uPFRyaXA+O1xuXG4gIEBBcGlQcm9wZXJ0eU9wdGlvbmFsKHsgZXhhbXBsZTogMiwgbnVsbGFibGU6IHRydWUgfSlcbiAgQENvbHVtbih7IG5hbWU6ICdjcmVhdGVkX2J5X2lkJywgdHlwZTogJ2ludCcsIG51bGxhYmxlOiB0cnVlIH0pXG4gIGNyZWF0ZWRCeUlkOiBudW1iZXIgfCBudWxsO1xuXG4gIEBNYW55VG9PbmUoKCkgPT4gVXNlciwgeyBvbkRlbGV0ZTogJ1NFVCBOVUxMJywgbnVsbGFibGU6IHRydWUgfSlcbiAgQEpvaW5Db2x1bW4oeyBuYW1lOiAnY3JlYXRlZF9ieV9pZCcgfSlcbiAgY3JlYXRlZEJ5PzogUmVsYXRpb248VXNlcj4gfCBudWxsO1xufVxuIl0sInZlcnNpb24iOjN9

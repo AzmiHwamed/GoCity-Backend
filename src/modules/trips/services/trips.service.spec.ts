@@ -20,6 +20,7 @@ import { PlacesService } from '../../places/places.service';
 import { TripExpense } from '../entities/trip-expense.entity';
 import { ServiceUnavailableException } from '@nestjs/common';
 import { Favorite, FavoriteType } from '../../favorites/entities/favorite.entity';
+import { OrganizationProgram } from '../../organizations/entities/organization-program.entity';
 
 const me = { id: 1, email: 'me@x.com', role: UserRole.USER };
 const other = { id: 9, email: 'o@x.com', role: UserRole.USER };
@@ -110,6 +111,7 @@ describe('TripsService', () => {
         { provide: getRepositoryToken(TripExpense), useValue: { createQueryBuilder: () => qb } },
         { provide: UsersService, useValue: usersService },
         { provide: getRepositoryToken(Favorite), useValue: favoritesRepo },
+        { provide: getRepositoryToken(OrganizationProgram), useValue: { find: jest.fn(async () => []) } },
         { provide: TripAccessService, useValue: access },
         { provide: ConfigService, useValue: { get: () => 'https://app.example.com/' } },
       ],
@@ -369,6 +371,49 @@ describe('TripsService', () => {
       visibility: TripVisibility.PUBLIC,
       cityPlaceId: 'ChIJlisbon',
     });
+  });
+
+  it('for-you browse filters public trips to the destinations of current trips', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const findAndCount = jest.fn(async (_opts: { where: any }) => [[], 0]);
+    (tripsRepo as unknown as { findAndCount: jest.Mock }).findAndCount = findAndCount;
+    (membersRepo.find as jest.Mock).mockResolvedValueOnce([
+      Object.assign(new TripMember(), { trip: trip({ cityPlaceId: 'ChIJlisbon', city: 'Lisbon' }) }),
+    ]);
+    const query = { page: 1, limit: 10, skip: 0 } as never;
+
+    await service.browseForYou(query, me);
+
+    expect(membersRepo.find).toHaveBeenCalledWith(
+      expect.objectContaining({ where: expect.objectContaining({ userId: me.id }) }),
+    );
+    expect(findAndCount.mock.calls[0]?.[0]?.where).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ visibility: TripVisibility.PUBLIC, cityPlaceId: expect.any(FindOperator) }),
+        expect.objectContaining({ visibility: TripVisibility.PUBLIC, city: expect.any(FindOperator) }),
+      ]),
+    );
+  });
+
+  it('city breaks searches only by city and agencies exclude normal-user trips', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const findAndCount = jest.fn(async (_opts: { where: any }) => [[], 0]);
+    (tripsRepo as unknown as { findAndCount: jest.Mock }).findAndCount = findAndCount;
+    const query = { page: 1, limit: 10, skip: 0 } as never;
+
+    await service.browseCityBreaks(Object.assign(query, { city: 'lisb' }), me);
+    expect(findAndCount.mock.calls[0]?.[0]?.where).toEqual([
+      expect.objectContaining({ city: expect.any(FindOperator) }),
+    ]);
+    expect(findAndCount.mock.calls[0]?.[0]?.where?.[0]).not.toHaveProperty('name');
+
+    await service.browseAgencyTrips(query, me);
+    expect(findAndCount.mock.calls[1]?.[0]?.where).toEqual(
+      expect.objectContaining({
+        visibility: TripVisibility.PUBLIC,
+        owner: { role: UserRole.ORGANIZATION },
+      }),
+    );
   });
 
   describe('city (Google Places)', () => {

@@ -130,6 +130,28 @@ export class BrowseTripsDto extends PaginationQueryDto {
   sort?: (typeof TRIP_SORTS)[number];
 }
 
+/** City-only public-trip search used by the city-breaks feed. */
+export class CityBreaksQueryDto extends PaginationQueryDto {
+  @ApiPropertyOptional({ example: 'Lisbon', description: 'Part of the destination city name' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  city?: string;
+
+  @ApiPropertyOptional({
+    description: 'Destination city placeId from GET /places/cities/search',
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  cityPlaceId?: string;
+
+  @ApiPropertyOptional({ enum: TRIP_SORTS, default: 'newest' })
+  @IsOptional()
+  @IsIn(TRIP_SORTS)
+  sort?: (typeof TRIP_SORTS)[number];
+}
+
 export class MyTripsQueryDto extends PaginationQueryDto {
   @ApiPropertyOptional({ enum: TripMemberRole, description: 'Only trips where I have this role' })
   @IsOptional()

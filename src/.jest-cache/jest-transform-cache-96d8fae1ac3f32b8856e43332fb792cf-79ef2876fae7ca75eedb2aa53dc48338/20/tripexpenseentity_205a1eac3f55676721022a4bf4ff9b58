@@ -1,0 +1,98 @@
+5847d18fbda578581a326ea2087d40df
+"use strict";
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.TripExpense = void 0;
+const swagger_1 = require("@nestjs/swagger");
+const typeorm_1 = require("typeorm");
+const base_entity_1 = require("../../../common/entities/base.entity");
+const decimal_transformer_1 = require("../../../common/transformers/decimal.transformer");
+const user_entity_1 = require("../../users/entities/user.entity");
+const trip_enums_1 = require("../trip.enums");
+const trip_entity_1 = require("./trip.entity");
+/**
+ * A cost of the trip that isn't an activity's own `expense`: the hotel, flights, food,
+ * shopping… Activity costs stay on the activities and are added to the totals separately,
+ * so nothing is counted twice.
+ */
+let TripExpense = class TripExpense extends base_entity_1.BaseEntity {
+};
+exports.TripExpense = TripExpense;
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: 1 }),
+    (0, typeorm_1.Column)({ name: 'trip_id' }),
+    __metadata("design:type", Number)
+], TripExpense.prototype, "tripId", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => trip_entity_1.Trip, { onDelete: 'CASCADE' }),
+    (0, typeorm_1.JoinColumn)({ name: 'trip_id' }),
+    __metadata("design:type", Object)
+], TripExpense.prototype, "trip", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: 'Airport taxi' }),
+    (0, typeorm_1.Column)({ length: 150 }),
+    __metadata("design:type", String)
+], TripExpense.prototype, "title", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: 35.5 }),
+    (0, typeorm_1.Column)({ type: 'decimal', precision: 12, scale: 2, transformer: decimal_transformer_1.decimalTransformer }),
+    __metadata("design:type", Number)
+], TripExpense.prototype, "amount", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ example: 'EUR', nullable: true }),
+    (0, typeorm_1.Column)({ type: 'varchar', length: 3, nullable: true }),
+    __metadata("design:type", Object)
+], TripExpense.prototype, "currency", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ enum: trip_enums_1.ExpenseCategory, example: trip_enums_1.ExpenseCategory.TRANSPORT }),
+    (0, typeorm_1.Column)({ type: 'enum', enum: trip_enums_1.ExpenseCategory, default: trip_enums_1.ExpenseCategory.OTHER }),
+    __metadata("design:type", String)
+], TripExpense.prototype, "category", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ example: '2026-11-01', nullable: true }),
+    (0, typeorm_1.Column)({ type: 'date', nullable: true }),
+    __metadata("design:type", Object)
+], TripExpense.prototype, "date", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ nullable: true }),
+    (0, typeorm_1.Column)({ type: 'varchar', length: 500, nullable: true }),
+    __metadata("design:type", Object)
+], TripExpense.prototype, "notes", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ example: 2, nullable: true, description: 'Member who paid' }),
+    (0, typeorm_1.Column)({ name: 'paid_by_id', type: 'int', nullable: true }),
+    __metadata("design:type", Object)
+], TripExpense.prototype, "paidById", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => user_entity_1.User, { onDelete: 'SET NULL', nullable: true }),
+    (0, typeorm_1.JoinColumn)({ name: 'paid_by_id' }),
+    __metadata("design:type", Object)
+], TripExpense.prototype, "paidBy", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ example: 1, nullable: true }),
+    (0, typeorm_1.Column)({ name: 'created_by_id', type: 'int', nullable: true }),
+    __metadata("design:type", Object)
+], TripExpense.prototype, "createdById", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => user_entity_1.User, { onDelete: 'SET NULL', nullable: true }),
+    (0, typeorm_1.JoinColumn)({ name: 'created_by_id' }),
+    __metadata("design:type", Object)
+], TripExpense.prototype, "createdBy", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: false }),
+    (0, typeorm_1.Column)({ name: 'is_hotel_stay', default: false }),
+    __metadata("design:type", Boolean)
+], TripExpense.prototype, "isHotelStay", void 0);
+exports.TripExpense = TripExpense = __decorate([
+    (0, typeorm_1.Entity)('trip_expenses'),
+    (0, typeorm_1.Index)(['tripId', 'category'])
+], TripExpense);
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJmaWxlIjoiQzpcXFVzZXJzXFxha2loaVxcRG9jdW1lbnRzXFxuZXN0anMtYmFja2VuZFxcc3JjXFxtb2R1bGVzXFx0cmlwc1xcZW50aXRpZXNcXHRyaXAtZXhwZW5zZS5lbnRpdHkudHMiLCJtYXBwaW5ncyI6Ijs7Ozs7Ozs7Ozs7O0FBQUEsNkNBQW1FO0FBQ25FLHFDQUFpRjtBQUNqRixzRUFBa0U7QUFDbEUsMEZBQXNGO0FBQ3RGLGtFQUF3RDtBQUN4RCw4Q0FBZ0Q7QUFDaEQsK0NBQXFDO0FBRXJDOzs7O0dBSUc7QUFHSSxJQUFNLFdBQVcsR0FBakIsTUFBTSxXQUFZLFNBQVEsd0JBQVU7Q0FxRDFDLENBQUE7QUFyRFksa0NBQVc7QUFHdEI7SUFGQyxJQUFBLHFCQUFXLEVBQUMsRUFBRSxPQUFPLEVBQUUsQ0FBQyxFQUFFLENBQUM7SUFDM0IsSUFBQSxnQkFBTSxFQUFDLEVBQUUsSUFBSSxFQUFFLFNBQVMsRUFBRSxDQUFDOzsyQ0FDYjtBQUlmO0lBRkMsSUFBQSxtQkFBUyxFQUFDLEdBQUcsRUFBRSxDQUFDLGtCQUFJLEVBQUUsRUFBRSxRQUFRLEVBQUUsU0FBUyxFQUFFLENBQUM7SUFDOUMsSUFBQSxvQkFBVSxFQUFDLEVBQUUsSUFBSSxFQUFFLFNBQVMsRUFBRSxDQUFDOzt5Q0FDVjtBQUl0QjtJQUZDLElBQUEscUJBQVcsRUFBQyxFQUFFLE9BQU8sRUFBRSxjQUFjLEVBQUUsQ0FBQztJQUN4QyxJQUFBLGdCQUFNLEVBQUMsRUFBRSxNQUFNLEVBQUUsR0FBRyxFQUFFLENBQUM7OzBDQUNWO0FBSWQ7SUFGQyxJQUFBLHFCQUFXLEVBQUMsRUFBRSxPQUFPLEVBQUUsSUFBSSxFQUFFLENBQUM7SUFDOUIsSUFBQSxnQkFBTSxFQUFDLEVBQUUsSUFBSSxFQUFFLFNBQVMsRUFBRSxTQUFTLEVBQUUsRUFBRSxFQUFFLEtBQUssRUFBRSxDQUFDLEVBQUUsV0FBVyxFQUFFLHdDQUFrQixFQUFFLENBQUM7OzJDQUN2RTtBQUlmO0lBRkMsSUFBQSw2QkFBbUIsRUFBQyxFQUFFLE9BQU8sRUFBRSxLQUFLLEVBQUUsUUFBUSxFQUFFLElBQUksRUFBRSxDQUFDO0lBQ3ZELElBQUEsZ0JBQU0sRUFBQyxFQUFFLElBQUksRUFBRSxTQUFTLEVBQUUsTUFBTSxFQUFFLENBQUMsRUFBRSxRQUFRLEVBQUUsSUFBSSxFQUFFLENBQUM7OzZDQUMvQjtBQUl4QjtJQUZDLElBQUEscUJBQVcsRUFBQyxFQUFFLElBQUksRUFBRSw0QkFBZSxFQUFFLE9BQU8sRUFBRSw0QkFBZSxDQUFDLFNBQVMsRUFBRSxDQUFDO0lBQzFFLElBQUEsZ0JBQU0sRUFBQyxFQUFFLElBQUksRUFBRSxNQUFNLEVBQUUsSUFBSSxFQUFFLDRCQUFlLEVBQUUsT0FBTyxFQUFFLDRCQUFlLENBQUMsS0FBSyxFQUFFLENBQUM7OzZDQUN0RDtBQUkxQjtJQUZDLElBQUEsNkJBQW1CLEVBQUMsRUFBRSxPQUFPLEVBQUUsWUFBWSxFQUFFLFFBQVEsRUFBRSxJQUFJLEVBQUUsQ0FBQztJQUM5RCxJQUFBLGdCQUFNLEVBQUMsRUFBRSxJQUFJLEVBQUUsTUFBTSxFQUFFLFFBQVEsRUFBRSxJQUFJLEVBQUUsQ0FBQzs7eUNBQ3JCO0FBSXBCO0lBRkMsSUFBQSw2QkFBbUIsRUFBQyxFQUFFLFFBQVEsRUFBRSxJQUFJLEVBQUUsQ0FBQztJQUN2QyxJQUFBLGdCQUFNLEVBQUMsRUFBRSxJQUFJLEVBQUUsU0FBUyxFQUFFLE1BQU0sRUFBRSxHQUFHLEVBQUUsUUFBUSxFQUFFLElBQUksRUFBRSxDQUFDOzswQ0FDcEM7QUFJckI7SUFGQyxJQUFBLDZCQUFtQixFQUFDLEVBQUUsT0FBTyxFQUFFLENBQUMsRUFBRSxRQUFRLEVBQUUsSUFBSSxFQUFFLFdBQVcsRUFBRSxpQkFBaUIsRUFBRSxDQUFDO0lBQ25GLElBQUEsZ0JBQU0sRUFBQyxFQUFFLElBQUksRUFBRSxZQUFZLEVBQUUsSUFBSSxFQUFFLEtBQUssRUFBRSxRQUFRLEVBQUUsSUFBSSxFQUFFLENBQUM7OzZDQUNwQztBQUl4QjtJQUZDLElBQUEsbUJBQVMsRUFBQyxHQUFHLEVBQUUsQ0FBQyxrQkFBSSxFQUFFLEVBQUUsUUFBUSxFQUFFLFVBQVUsRUFBRSxRQUFRLEVBQUUsSUFBSSxFQUFFLENBQUM7SUFDL0QsSUFBQSxvQkFBVSxFQUFDLEVBQUUsSUFBSSxFQUFFLFlBQVksRUFBRSxDQUFDOzsyQ0FDSjtBQUkvQjtJQUZDLElBQUEsNkJBQW1CLEVBQUMsRUFBRSxPQUFPLEVBQUUsQ0FBQyxFQUFFLFFBQVEsRUFBRSxJQUFJLEVBQUUsQ0FBQztJQUNuRCxJQUFBLGdCQUFNLEVBQUMsRUFBRSxJQUFJLEVBQUUsZUFBZSxFQUFFLElBQUksRUFBRSxLQUFLLEVBQUUsUUFBUSxFQUFFLElBQUksRUFBRSxDQUFDOztnREFDcEM7QUFJM0I7SUFGQyxJQUFBLG1CQUFTLEVBQUMsR0FBRyxFQUFFLENBQUMsa0JBQUksRUFBRSxFQUFFLFFBQVEsRUFBRSxVQUFVLEVBQUUsUUFBUSxFQUFFLElBQUksRUFBRSxDQUFDO0lBQy9ELElBQUEsb0JBQVUsRUFBQyxFQUFFLElBQUksRUFBRSxlQUFlLEVBQUUsQ0FBQzs7OENBQ0o7QUFLbEM7SUFGQyxJQUFBLHFCQUFXLEVBQUMsRUFBRSxPQUFPLEVBQUUsS0FBSyxFQUFFLENBQUM7SUFDL0IsSUFBQSxnQkFBTSxFQUFDLEVBQUUsSUFBSSxFQUFFLGVBQWUsRUFBRSxPQUFPLEVBQUUsS0FBSyxFQUFFLENBQUM7O2dEQUM3QjtzQkFwRFYsV0FBVztJQUZ2QixJQUFBLGdCQUFNLEVBQUMsZUFBZSxDQUFDO0lBQ3ZCLElBQUEsZUFBSyxFQUFDLENBQUMsUUFBUSxFQUFFLFVBQVUsQ0FBQyxDQUFDO0dBQ2pCLFdBQVcsQ0FxRHZCIiwibmFtZXMiOltdLCJzb3VyY2VzIjpbIkM6XFxVc2Vyc1xcYWtpaGlcXERvY3VtZW50c1xcbmVzdGpzLWJhY2tlbmRcXHNyY1xcbW9kdWxlc1xcdHJpcHNcXGVudGl0aWVzXFx0cmlwLWV4cGVuc2UuZW50aXR5LnRzIl0sInNvdXJjZXNDb250ZW50IjpbImltcG9ydCB7IEFwaVByb3BlcnR5LCBBcGlQcm9wZXJ0eU9wdGlvbmFsIH0gZnJvbSAnQG5lc3Rqcy9zd2FnZ2VyJztcbmltcG9ydCB7IENvbHVtbiwgRW50aXR5LCBJbmRleCwgSm9pbkNvbHVtbiwgTWFueVRvT25lLCBSZWxhdGlvbiB9IGZyb20gJ3R5cGVvcm0nO1xuaW1wb3J0IHsgQmFzZUVudGl0eSB9IGZyb20gJy4uLy4uLy4uL2NvbW1vbi9lbnRpdGllcy9iYXNlLmVudGl0eSc7XG5pbXBvcnQgeyBkZWNpbWFsVHJhbnNmb3JtZXIgfSBmcm9tICcuLi8uLi8uLi9jb21tb24vdHJhbnNmb3JtZXJzL2RlY2ltYWwudHJhbnNmb3JtZXInO1xuaW1wb3J0IHsgVXNlciB9IGZyb20gJy4uLy4uL3VzZXJzL2VudGl0aWVzL3VzZXIuZW50aXR5JztcbmltcG9ydCB7IEV4cGVuc2VDYXRlZ29yeSB9IGZyb20gJy4uL3RyaXAuZW51bXMnO1xuaW1wb3J0IHsgVHJpcCB9IGZyb20gJy4vdHJpcC5lbnRpdHknO1xuXG4vKipcbiAqIEEgY29zdCBvZiB0aGUgdHJpcCB0aGF0IGlzbid0IGFuIGFjdGl2aXR5J3Mgb3duIGBleHBlbnNlYDogdGhlIGhvdGVsLCBmbGlnaHRzLCBmb29kLFxuICogc2hvcHBpbmfigKYgQWN0aXZpdHkgY29zdHMgc3RheSBvbiB0aGUgYWN0aXZpdGllcyBhbmQgYXJlIGFkZGVkIHRvIHRoZSB0b3RhbHMgc2VwYXJhdGVseSxcbiAqIHNvIG5vdGhpbmcgaXMgY291bnRlZCB0d2ljZS5cbiAqL1xuQEVudGl0eSgndHJpcF9leHBlbnNlcycpXG5ASW5kZXgoWyd0cmlwSWQnLCAnY2F0ZWdvcnknXSlcbmV4cG9ydCBjbGFzcyBUcmlwRXhwZW5zZSBleHRlbmRzIEJhc2VFbnRpdHkge1xuICBAQXBpUHJvcGVydHkoeyBleGFtcGxlOiAxIH0pXG4gIEBDb2x1bW4oeyBuYW1lOiAndHJpcF9pZCcgfSlcbiAgdHJpcElkOiBudW1iZXI7XG5cbiAgQE1hbnlUb09uZSgoKSA9PiBUcmlwLCB7IG9uRGVsZXRlOiAnQ0FTQ0FERScgfSlcbiAgQEpvaW5Db2x1bW4oeyBuYW1lOiAndHJpcF9pZCcgfSlcbiAgdHJpcD86IFJlbGF0aW9uPFRyaXA+O1xuXG4gIEBBcGlQcm9wZXJ0eSh7IGV4YW1wbGU6ICdBaXJwb3J0IHRheGknIH0pXG4gIEBDb2x1bW4oeyBsZW5ndGg6IDE1MCB9KVxuICB0aXRsZTogc3RyaW5nO1xuXG4gIEBBcGlQcm9wZXJ0eSh7IGV4YW1wbGU6IDM1LjUgfSlcbiAgQENvbHVtbih7IHR5cGU6ICdkZWNpbWFsJywgcHJlY2lzaW9uOiAxMiwgc2NhbGU6IDIsIHRyYW5zZm9ybWVyOiBkZWNpbWFsVHJhbnNmb3JtZXIgfSlcbiAgYW1vdW50OiBudW1iZXI7XG5cbiAgQEFwaVByb3BlcnR5T3B0aW9uYWwoeyBleGFtcGxlOiAnRVVSJywgbnVsbGFibGU6IHRydWUgfSlcbiAgQENvbHVtbih7IHR5cGU6ICd2YXJjaGFyJywgbGVuZ3RoOiAzLCBudWxsYWJsZTogdHJ1ZSB9KVxuICBjdXJyZW5jeTogc3RyaW5nIHwgbnVsbDtcblxuICBAQXBpUHJvcGVydHkoeyBlbnVtOiBFeHBlbnNlQ2F0ZWdvcnksIGV4YW1wbGU6IEV4cGVuc2VDYXRlZ29yeS5UUkFOU1BPUlQgfSlcbiAgQENvbHVtbih7IHR5cGU6ICdlbnVtJywgZW51bTogRXhwZW5zZUNhdGVnb3J5LCBkZWZhdWx0OiBFeHBlbnNlQ2F0ZWdvcnkuT1RIRVIgfSlcbiAgY2F0ZWdvcnk6IEV4cGVuc2VDYXRlZ29yeTtcblxuICBAQXBpUHJvcGVydHlPcHRpb25hbCh7IGV4YW1wbGU6ICcyMDI2LTExLTAxJywgbnVsbGFibGU6IHRydWUgfSlcbiAgQENvbHVtbih7IHR5cGU6ICdkYXRlJywgbnVsbGFibGU6IHRydWUgfSlcbiAgZGF0ZTogc3RyaW5nIHwgbnVsbDtcblxuICBAQXBpUHJvcGVydHlPcHRpb25hbCh7IG51bGxhYmxlOiB0cnVlIH0pXG4gIEBDb2x1bW4oeyB0eXBlOiAndmFyY2hhcicsIGxlbmd0aDogNTAwLCBudWxsYWJsZTogdHJ1ZSB9KVxuICBub3Rlczogc3RyaW5nIHwgbnVsbDtcblxuICBAQXBpUHJvcGVydHlPcHRpb25hbCh7IGV4YW1wbGU6IDIsIG51bGxhYmxlOiB0cnVlLCBkZXNjcmlwdGlvbjogJ01lbWJlciB3aG8gcGFpZCcgfSlcbiAgQENvbHVtbih7IG5hbWU6ICdwYWlkX2J5X2lkJywgdHlwZTogJ2ludCcsIG51bGxhYmxlOiB0cnVlIH0pXG4gIHBhaWRCeUlkOiBudW1iZXIgfCBudWxsO1xuXG4gIEBNYW55VG9PbmUoKCkgPT4gVXNlciwgeyBvbkRlbGV0ZTogJ1NFVCBOVUxMJywgbnVsbGFibGU6IHRydWUgfSlcbiAgQEpvaW5Db2x1bW4oeyBuYW1lOiAncGFpZF9ieV9pZCcgfSlcbiAgcGFpZEJ5PzogUmVsYXRpb248VXNlcj4gfCBudWxsO1xuXG4gIEBBcGlQcm9wZXJ0eU9wdGlvbmFsKHsgZXhhbXBsZTogMSwgbnVsbGFibGU6IHRydWUgfSlcbiAgQENvbHVtbih7IG5hbWU6ICdjcmVhdGVkX2J5X2lkJywgdHlwZTogJ2ludCcsIG51bGxhYmxlOiB0cnVlIH0pXG4gIGNyZWF0ZWRCeUlkOiBudW1iZXIgfCBudWxsO1xuXG4gIEBNYW55VG9PbmUoKCkgPT4gVXNlciwgeyBvbkRlbGV0ZTogJ1NFVCBOVUxMJywgbnVsbGFibGU6IHRydWUgfSlcbiAgQEpvaW5Db2x1bW4oeyBuYW1lOiAnY3JlYXRlZF9ieV9pZCcgfSlcbiAgY3JlYXRlZEJ5PzogUmVsYXRpb248VXNlcj4gfCBudWxsO1xuXG4gIC8qKiBUaGUgdHJpcCdzIGhvdGVsIHN0YXkgKGtlcHQgaW4gc3luYyBieSBQVVQgL3RyaXBzLzppZC9ob3RlbCk7IGF0IG1vc3Qgb25lIHBlciB0cmlwLiAqL1xuICBAQXBpUHJvcGVydHkoeyBleGFtcGxlOiBmYWxzZSB9KVxuICBAQ29sdW1uKHsgbmFtZTogJ2lzX2hvdGVsX3N0YXknLCBkZWZhdWx0OiBmYWxzZSB9KVxuICBpc0hvdGVsU3RheTogYm9vbGVhbjtcbn1cbiJdLCJ2ZXJzaW9uIjozfQ==
